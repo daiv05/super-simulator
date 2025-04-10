@@ -14,7 +14,8 @@ class Customer:
         self.serving_time = self.products * self.time_per_product
         self.time_served = 0
         self.is_being_served = False
-        self.waiting_time = 0  # Tiempo que ha estado esperando en la cola
+        self.waiting_time = 0
+        print(f"Nuevo cliente creado: {self.products} productos, tiempo por producto: {self.time_per_product}s, tiempo total estimado: {self.serving_time:.1f}s")
         
     def update_position(self, x, y):
         self.x = x
@@ -48,7 +49,11 @@ class Customer:
         if self.is_being_served:
             self.time_served += dt
             if self.time_served >= self.serving_time:
+                print(f"Cliente atendido: Esperó {self.waiting_time:.1f}s, fue atendido por {self.time_served:.1f}s, total: {self.waiting_time + self.time_served:.1f}s")
                 return True  # Customer is done being served
         else:
             self.waiting_time += dt
+            # Verificar que el tiempo de espera se está incrementando
+            if int(self.waiting_time) != int(self.waiting_time - dt):
+                print(f"Cliente en cola: Tiempo de espera actual: {self.waiting_time:.1f}s")
         return False 

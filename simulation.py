@@ -157,6 +157,7 @@ class Simulation:
         new_num_cashiers = int(self.sliders[0].value)
         if new_num_cashiers != self.num_cashiers:
             self.num_cashiers = new_num_cashiers
+            print(f"Número de cajeros cambiado a: {self.num_cashiers}")
             self.setup_simulation()
             
         self.max_products = int(self.sliders[1].value)
@@ -173,15 +174,30 @@ class Simulation:
             # Find shortest queue
             shortest_queue = min(self.queues, key=len)
             shortest_queue.append(new_customer)
+            print(f"Nuevo cliente asignado a la cola más corta. Longitud de colas: {[len(q) for q in self.queues]}")
             
         # Update cashiers and serve customers
-        for i, cashier in enumerate(self.cashiers):
-            if cashier.is_available and self.queues[i]:
-                customer = self.queues[i][0]
-                if cashier.serve_customer(customer):
-                    self.queues[i].pop(0)
-                    
+        for i, queue in enumerate(self.queues):
+            cashier = self.cashiers[i]
+            if cashier.is_available and queue:  # Si el cajero está disponible y hay clientes en la cola
+                customer = queue[0]
+                customer.is_being_served = True
+                cashier.is_available = False
+                print(f"Cliente comenzando a ser atendido en cajero {i+1}. Tiempo de espera previo: {customer.waiting_time:.1f}s")
+                
+            # Actualizar estado del cliente actual
+            if queue and queue[0].is_being_served:
+                if queue[0].update(dt):  # Si el cliente ha terminado de ser atendido
+                    queue.pop(0)  # Eliminar cliente de la cola
+                    cashier.is_available = True
+                    print(f"Cliente atendido en cajero {i+1}. Cola actual: {len(queue)} clientes")
+            
             cashier.update(dt)
+            
+        # Verificar estado de las colas cada segundo
+        if int(pygame.time.get_ticks() / 1000) != int((pygame.time.get_ticks() - dt * 1000) / 1000):
+            total_waiting = sum(len(q) for q in self.queues)
+            print(f"Estado actual - Clientes en cola: {total_waiting}, Cajeros ocupados: {sum(1 for c in self.cashiers if not c.is_available)}")
                 
     def run(self):
         running = True
