@@ -1,4 +1,5 @@
 import pygame
+import pygame_gui
 import sys
 from pygame.locals import *
 from slider import Slider
@@ -10,11 +11,12 @@ from button import Button
 pygame.init()
 
 # Constants
-WINDOW_WIDTH = 1000
+WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 700
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GRAY = (200, 200, 200)
+LIGHT_BLUE = (157, 191, 255)
 
 class Simulation:
     def __init__(self):
@@ -25,6 +27,9 @@ class Simulation:
         self.state = "welcome"
         self.start_button = Button(WINDOW_WIDTH//2 - 100, WINDOW_HEIGHT//2 + 50, 200, 50, "Comenzar")
         
+        # Create the pygame_gui manager
+        self.manager = pygame_gui.UIManager((WINDOW_WIDTH, WINDOW_HEIGHT), "theme.json")
+
         # Simulation variables
         self.num_cashiers = 1
         self.max_products = 10
@@ -39,10 +44,10 @@ class Simulation:
         # Control panel
         self.control_panel_height = 150
         self.sliders = [
-            Slider(50, 50, 200, 20, 1, 8, 1, "Cajeros"),
-            Slider(300, 50, 200, 20, 1, 20, 10, "Productos máx"),
-            Slider(550, 50, 200, 20, 1, 10, 5, "Frecuencia"),
-            Slider(50, 100, 200, 20, 0.5, 5, 2, "Tiempo/prod")
+            Slider(50, 50, 85, 40, 2, 8, 1, "Cajeros", self.manager),
+            Slider(300, 50, 85, 40, 1, 20, 10, "Productos máx", self.manager),
+            Slider(550, 50, 85, 40, 1, 10, 5, "Frecuencia", self.manager),
+            Slider(50, 100, 85, 40, 1, 5, 2, "Tiempo/prod", self.manager)
         ]
         
         # Control buttons
@@ -79,8 +84,8 @@ class Simulation:
     def draw_control_panel(self):
         # Draw control panel background
         panel_rect = pygame.Rect(0, 0, WINDOW_WIDTH, self.control_panel_height)
-        pygame.draw.rect(self.screen, GRAY, panel_rect)
-        pygame.draw.rect(self.screen, BLACK, panel_rect, 2)
+        pygame.draw.rect(self.screen, LIGHT_BLUE, panel_rect)
+        pygame.draw.line(self.screen, BLACK, (0,self.control_panel_height), (WINDOW_WIDTH,self.control_panel_height), 1)
         
         # Draw sliders
         for slider in self.sliders:
@@ -147,6 +152,9 @@ class Simulation:
                                 self.control_buttons[0].set_active(False)
                                 self.control_buttons[1].set_active(False)
                                 
+            # Pass events to pygame_gui manager
+            self.manager.process_events(event)
+                                
         return True
         
     def update_simulation(self, dt):
@@ -154,15 +162,15 @@ class Simulation:
             return
             
         # Update simulation variables from sliders
-        new_num_cashiers = int(self.sliders[0].value)
+        new_num_cashiers = int(self.sliders[0].get_value())
         if new_num_cashiers != self.num_cashiers:
             self.num_cashiers = new_num_cashiers
             print(f"Número de cajeros cambiado a: {self.num_cashiers}")
             self.setup_simulation()
             
-        self.max_products = int(self.sliders[1].value)
-        self.arrival_frequency = int(self.sliders[2].value)
-        self.time_per_product = self.sliders[3].value
+        self.max_products = int(self.sliders[1].get_value())
+        self.arrival_frequency = int(self.sliders[2].get_value())
+        self.time_per_product = self.sliders[3].get_value()
         
         # Generate new customers
         self.time_since_last_customer += dt
@@ -194,11 +202,9 @@ class Simulation:
             
             cashier.update(dt)
             
-        # Verificar estado de las colas cada segundo
-        if int(pygame.time.get_ticks() / 1000) != int((pygame.time.get_ticks() - dt * 1000) / 1000):
-            total_waiting = sum(len(q) for q in self.queues)
-            print(f"Estado actual - Clientes en cola: {total_waiting}, Cajeros ocupados: {sum(1 for c in self.cashiers if not c.is_available)}")
-                
+        # Update pygame_gui manager
+        self.manager.update(dt)
+            
     def run(self):
         running = True
         while running:
@@ -212,7 +218,10 @@ class Simulation:
                 self.update_simulation(dt)
                 self.draw_simulation_screen()
                 
+            # Draw pygame_gui elements
+            self.manager.draw_ui(self.screen)
+            
             pygame.display.flip()
             
         pygame.quit()
-        sys.exit() 
+        sys.exit()

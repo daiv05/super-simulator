@@ -1,44 +1,60 @@
+from pygame_gui.core import ObjectID
 import pygame
+import pygame_gui
 
 class Slider:
-    def __init__(self, x, y, width, height, min_val, max_val, initial_val, label):
-        self.rect = pygame.Rect(x, y, width, height)
+    def __init__(self, x, y, width, height, min_val, max_val, initial_val, label, manager):
+        self.label = label
+        self.manager = manager
         self.min_val = min_val
         self.max_val = max_val
         self.value = initial_val
-        self.label = label
-        self.dragging = False
-        
+
+        # Crear botones para incrementar y decrementar
+        self.increment_button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect((x, y), (height, height)),
+            text="+",
+            manager=self.manager,
+            object_id=ObjectID(None,"#btn-rounded-primary"),
+        )
+        self.decrement_button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect((x + width - height, y), (height, height)),
+            text="-",
+            manager=self.manager,
+            object_id=ObjectID(None,"#btn-rounded-danger"),
+        )
+
+        # Posición de la etiqueta
+        self.label_x = x + height + 10
+        self.label_y = y
+        self.label_width = width - (2 * height) - 20
+
     def draw(self, surface):
-        # Draw label
-        font = pygame.font.Font(None, 24)
-        label_surface = font.render(f"{self.label}: {int(self.value)}", True, (0, 0, 0))
-        surface.blit(label_surface, (self.rect.x, self.rect.y - 25))
+        # Dibujar etiqueta
+        font = pygame.font.Font(None, 20)
+        label_surface = font.render(self.label, True, (0, 0, 0))
+        value_surface = font.render(str(self.value), True, (0, 0, 0))
         
-        # Draw slider track
-        pygame.draw.rect(surface, (200, 200, 200), self.rect)
-        pygame.draw.rect(surface, (0, 0, 0), self.rect, 2)
+        label_rect = label_surface.get_rect(center=(self.label_x + self.label_width // 2, self.label_y - 20))
+        value_rect = value_surface.get_rect(center=(self.label_x + self.label_width // 2, self.label_y))
         
-        # Calculate handle position
-        handle_x = self.rect.x + (self.value - self.min_val) / (self.max_val - self.min_val) * self.rect.width
-        handle_rect = pygame.Rect(handle_x - 5, self.rect.y - 5, 10, self.rect.height + 10)
-        
-        # Draw handle
-        pygame.draw.rect(surface, (0, 0, 255), handle_rect)
-        pygame.draw.rect(surface, (0, 0, 0), handle_rect, 2)
-        
+        surface.blit(label_surface, label_rect.topleft)
+        surface.blit(value_surface, value_rect.topleft)
+        self.manager.update(0)  # Actualizar el gestor para que los botones se dibujen correctamente
+
     def handle_event(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if self.rect.collidepoint(event.pos):
-                self.dragging = True
-                self.update_value(event.pos[0])
-        elif event.type == pygame.MOUSEBUTTONUP:
-            self.dragging = False
-        elif event.type == pygame.MOUSEMOTION and self.dragging:
-            self.update_value(event.pos[0])
-            
-    def update_value(self, mouse_x):
-        # Calculate new value based on mouse position
-        relative_x = max(0, min(mouse_x - self.rect.x, self.rect.width))
-        self.value = self.min_val + (relative_x / self.rect.width) * (self.max_val - self.min_val)
-        self.value = round(self.value) 
+        # Manejar eventos de los botones
+        if event.type == pygame.USEREVENT:
+            if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                if event.ui_element == self.decrement_button and self.value > self.min_val:
+                    self.value -= 1
+                elif event.ui_element == self.increment_button and self.value < self.max_val:
+                    self.value += 1
+
+    def update(self, time_delta):
+        # Actualizar el gestor de pygame_gui
+        self.manager.update(time_delta)
+
+    def get_value(self):
+        # Obtener el valor actual
+        return self.value
