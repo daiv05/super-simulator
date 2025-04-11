@@ -2,16 +2,16 @@ import pygame
 import pygame_gui
 import sys
 from pygame.locals import *
-from slider import Slider
+from components.slider import Slider
 from customer import Customer
 from cashier import Cashier
-from button import Button
+from components.button import Button
 
 # Initialize pygame
 pygame.init()
 
 # Constants
-WINDOW_WIDTH = 800
+WINDOW_WIDTH = 1200
 WINDOW_HEIGHT = 700
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -20,17 +20,47 @@ LIGHT_BLUE = (157, 191, 255)
 
 class Simulation:
     def __init__(self):
-        # Create screen after pygame is initialized
-        self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+        # Create screen before initializing UIManager
         pygame.display.set_caption("Simulación de Supermercado")
-        self.clock = pygame.time.Clock()
-        self.state = "welcome"
-        self.start_button = Button(WINDOW_WIDTH//2 - 100, WINDOW_HEIGHT//2 + 50, 200, 50, "Comenzar")
-        
+        self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+
+        self.background = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
+        background_image = pygame.image.load("assets/fondo-supermercado.jpg")
+        self.background = pygame.transform.scale(background_image, (WINDOW_WIDTH, WINDOW_HEIGHT))
+
         # Create the pygame_gui manager
         self.manager = pygame_gui.UIManager((WINDOW_WIDTH, WINDOW_HEIGHT), "theme.json")
 
-        # Simulation variables
+        # Initialize buttons after manager
+        self.state = "welcome"
+        self.start_button = Button(WINDOW_WIDTH//2 - 100, WINDOW_HEIGHT//2 + 50, 200, 50, "Comenzar", manager=self.manager)
+        
+        self.clock = pygame.time.Clock()
+
+        # ------------ Controls the Simulation -------------
+        # Control panel
+        self.sliders = [
+            Slider(50, 35, 85, 40, 2, 8, 1, "Cajeros", self.manager),
+            Slider(300, 35, 85, 40, 1, 20, 10, "Productos máx", self.manager),
+            Slider(550, 35, 85, 40, 1, 10, 5, "Frecuencia", self.manager),
+            Slider(50, 100, 85, 40, 1, 5, 2, "Tiempo/prod", self.manager)
+        ]
+        
+        # Control buttons
+        button_width = 60
+        button_height = 60
+        button_spacing = 20
+        total_width = 3 * button_width + 2 * button_spacing
+        start_x = (WINDOW_WIDTH - total_width) // 2
+        y_position = 85
+
+        self.control_buttons = [
+            Button(start_x, y_position, button_width, button_height, "Iniciar", color=(0, 150, 0), hover_color=(0, 200, 0), active_color=(0, 100, 0), manager=self.manager, btn_type="#btn-start"),
+            Button(start_x + button_width + button_spacing, y_position, button_width, button_height, "Pausar", color=(150, 150, 0), hover_color=(200, 200, 0), active_color=(100, 100, 0), manager=self.manager, btn_type="#btn-pause"),
+            Button(start_x + 2 * (button_width + button_spacing), y_position, button_width, button_height, "Reset", color=(150, 0, 0), hover_color=(200, 0, 0), active_color=(100, 0, 0), manager=self.manager, btn_type="#btn-reset")
+        ]
+        
+        # ------------  Simulation variables ------------------
         self.num_cashiers = 1
         self.max_products = 10
         self.arrival_frequency = 5  # seconds between arrivals
@@ -41,22 +71,68 @@ class Simulation:
         self.is_running = False
         self.is_paused = False
         
-        # Control panel
+        # Control panel height
         self.control_panel_height = 150
-        self.sliders = [
-            Slider(50, 35, 85, 40, 2, 8, 1, "Cajeros", self.manager),
-            Slider(300, 35, 85, 40, 1, 20, 10, "Productos máx", self.manager),
-            Slider(550, 35, 85, 40, 1, 10, 5, "Frecuencia", self.manager),
-            Slider(50, 100, 85, 40, 1, 5, 2, "Tiempo/prod", self.manager)
-        ]
         
-        # Control buttons
-        self.control_buttons = [
-            Button(300, 100, 100, 40, "Iniciar", color=(0, 150, 0), hover_color=(0, 200, 0), active_color=(0, 100, 0)),
-            Button(420, 100, 100, 40, "Pausar", color=(150, 150, 0), hover_color=(200, 200, 0), active_color=(100, 100, 0)),
-            Button(540, 100, 100, 40, "Reset", color=(150, 0, 0), hover_color=(200, 0, 0))
-        ]
-        
+    def run(self):
+        running = True
+        while running:
+            dt = self.clock.tick(60) / 1000.0  # Convert to seconds
+            
+            running = self.handle_events()
+            
+            if self.state == "welcome":
+                self.draw_welcome_screen()
+            else:
+                self.update_simulation(dt)
+                self.draw_simulation_screen()
+            
+            # Draw pygame_gui elements
+            self.manager.draw_ui(self.screen)
+            self.manager.update(dt)  # Actualizar el gestor para que los botones se dibujen correctamente
+            pygame.display.flip()
+            
+        pygame.quit()
+        sys.exit()
+    
+    def handle_events(self):
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                return False
+
+            # Pasar eventos a pygame_gui
+            self.manager.process_events(event)  
+            
+            if self.state == "welcome":
+                # Manejar clic en el botón de inicio
+                if self.start_button.handle_event(event):
+                    self.state = "simulation"
+                    self.setup_simulation()
+            else:
+                # Manejar eventos de los sliders
+                for slider in self.sliders:
+                    slider.handle_event(event)
+                    
+                # Manejar eventos de los botones de control
+                for i, button in enumerate(self.control_buttons):
+                    if button.handle_event(event):
+                        if i == 0:  # Button "Iniciar"
+                            self.is_running = True
+                            self.is_paused = False
+                            self.control_buttons[0].set_active(True)
+                            self.control_buttons[1].set_active(False)
+                        elif i == 1:  # Button "Pausar"
+                            self.is_paused = not self.is_paused
+                            self.control_buttons[1].set_active(self.is_paused)
+                        elif i == 2:  # Button "Reset"
+                            self.setup_simulation()
+                            self.is_running = False
+                            self.is_paused = False
+                            self.control_buttons[0].set_active(False)
+                            self.control_buttons[1].set_active(False)
+                                
+        return True
+
     def setup_simulation(self):
         self.customers = []
         self.cashiers = []
@@ -78,7 +154,7 @@ class Simulation:
         welcome_text = font.render("Simulación de Colas en Supermercado", True, BLACK)
         welcome_rect = welcome_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 - 50))
         self.screen.blit(welcome_text, welcome_rect)
-        
+
         self.start_button.draw(self.screen)
         
     def draw_control_panel(self):
@@ -87,6 +163,9 @@ class Simulation:
         pygame.draw.rect(self.screen, LIGHT_BLUE, panel_rect)
         pygame.draw.line(self.screen, BLACK, (0,self.control_panel_height), (WINDOW_WIDTH,self.control_panel_height), 1)
         
+        # Hide the start button
+        self.start_button.hide()
+
         # Draw sliders
         for slider in self.sliders:
             slider.draw(self.screen)
@@ -118,44 +197,6 @@ class Simulation:
         self.screen.fill(WHITE)
         self.draw_control_panel()
         self.draw_simulation()
-        
-    def handle_events(self):
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                return False
-                
-            if self.state == "welcome":
-                if event.type == MOUSEBUTTONDOWN and self.start_button.is_clicked(event.pos):
-                    self.state = "simulation"
-                    self.setup_simulation()
-            else:
-                # Handle slider events
-                for slider in self.sliders:
-                    slider.handle_event(event)
-                    
-                # Handle control button events
-                if event.type == MOUSEBUTTONDOWN:
-                    for i, button in enumerate(self.control_buttons):
-                        if button.is_clicked(event.pos):
-                            if i == 0:  # Start
-                                self.is_running = True
-                                self.is_paused = False
-                                self.control_buttons[0].set_active(True)
-                                self.control_buttons[1].set_active(False)
-                            elif i == 1:  # Pause
-                                self.is_paused = not self.is_paused
-                                self.control_buttons[1].set_active(self.is_paused)
-                            elif i == 2:  # Reset
-                                self.setup_simulation()
-                                self.is_running = False
-                                self.is_paused = False
-                                self.control_buttons[0].set_active(False)
-                                self.control_buttons[1].set_active(False)
-                                
-            # Pass events to pygame_gui manager
-            self.manager.process_events(event)
-                                
-        return True
         
     def update_simulation(self, dt):
         if not self.is_running or self.is_paused:
@@ -204,24 +245,3 @@ class Simulation:
             
         # Update pygame_gui manager
         self.manager.update(dt)
-            
-    def run(self):
-        running = True
-        while running:
-            dt = self.clock.tick(60) / 1000.0  # Convert to seconds
-            
-            running = self.handle_events()
-            
-            if self.state == "welcome":
-                self.draw_welcome_screen()
-            else:
-                self.update_simulation(dt)
-                self.draw_simulation_screen()
-                
-            # Draw pygame_gui elements
-            self.manager.draw_ui(self.screen)
-            
-            pygame.display.flip()
-            
-        pygame.quit()
-        sys.exit()

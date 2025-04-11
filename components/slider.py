@@ -16,12 +16,14 @@ class Slider:
             text="+",
             manager=self.manager,
             object_id=ObjectID(None,"#btn-rounded-primary"),
+            visible=False
         )
         self.decrement_button = pygame_gui.elements.UIButton(
             relative_rect=pygame.Rect((x + width - height, y), (height, height)),
             text="-",
             manager=self.manager,
             object_id=ObjectID(None,"#btn-rounded-danger"),
+            visible=False
         )
 
         # Posición de la etiqueta
@@ -40,7 +42,11 @@ class Slider:
         
         surface.blit(label_surface, label_rect.topleft)
         surface.blit(value_surface, value_rect.topleft)
-        self.manager.update(0)  # Actualizar el gestor para que los botones se dibujen correctamente
+
+        # Dibujar botones
+        self.increment_button.show()
+        self.decrement_button.show()
+
 
     def handle_event(self, event):
         # Manejar eventos de los botones
