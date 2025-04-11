@@ -33,7 +33,7 @@ class Simulation:
 
         # Initialize buttons after manager
         self.state = "welcome"
-        self.start_button = Button(WINDOW_WIDTH//2 - 100, WINDOW_HEIGHT//2 + 50, 200, 50, "Comenzar", manager=self.manager)
+        self.start_button = Button(WINDOW_WIDTH//2 - 100, WINDOW_HEIGHT//2 + 50, 250, 50, "INICIAR SIMULACIÓN", manager=self.manager, btn_type="#btn-init")
         
         self.clock = pygame.time.Clock()
 
@@ -59,9 +59,9 @@ class Simulation:
         y_position = 85
 
         self.control_buttons = [
-            Button(start_x, y_position, button_width, button_height, "Iniciar", color=(0, 150, 0), hover_color=(0, 200, 0), active_color=(0, 100, 0), manager=self.manager, btn_type="#btn-start"),
-            Button(start_x + button_width + button_spacing, y_position, button_width, button_height, "Pausar", color=(150, 150, 0), hover_color=(200, 200, 0), active_color=(100, 100, 0), manager=self.manager, btn_type="#btn-pause"),
-            Button(start_x + 2 * (button_width + button_spacing), y_position, button_width, button_height, "Reset", color=(150, 0, 0), hover_color=(200, 0, 0), active_color=(100, 0, 0), manager=self.manager, btn_type="#btn-reset")
+            Button(start_x, y_position, button_width, button_height, "", color=(0, 150, 0), hover_color=(0, 200, 0), active_color=(0, 100, 0), manager=self.manager, btn_type="#btn-start"),
+            Button(start_x + button_width + button_spacing, y_position, button_width, button_height, "", color=(150, 150, 0), hover_color=(200, 200, 0), active_color=(100, 100, 0), manager=self.manager, btn_type="#btn-pause"),
+            Button(start_x + 2 * (button_width + button_spacing), y_position, button_width, button_height, "", color=(150, 0, 0), hover_color=(200, 0, 0), active_color=(100, 0, 0), manager=self.manager, btn_type="#btn-reset")
         ]
         
         # ------------  Simulation variables ------------------
@@ -164,7 +164,7 @@ class Simulation:
         
         # Initialize font here
         font = pygame.font.Font(None, 48)
-        welcome_text = font.render("Simulación de Colas en Supermercado", True, BLACK)
+        welcome_text = font.render("Simulación de Clientes en Supermercado", True, BLACK)
         welcome_rect = welcome_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 - 50))
         self.screen.blit(welcome_text, welcome_rect)
 

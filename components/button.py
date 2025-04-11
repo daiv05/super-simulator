@@ -20,7 +20,6 @@ class Button:
         # Estilado del botón
         if btn_type != "":
             self.object_id = ObjectID(None, btn_type)
-            self.text = ""
         else:
             self.object_id = ObjectID(None, None)
 
@@ -56,6 +55,4 @@ class Button:
         self.ui_button.show()
     
     def hide(self):
-        if(self.ui_button.text != "Comenzar"):
-          print("hide", self.ui_button.text)
         self.ui_button.visible = False
