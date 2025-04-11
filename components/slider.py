@@ -37,8 +37,8 @@ class Slider:
         label_surface = font.render(self.label, True, (0, 0, 0))
         value_surface = font.render(str(self.value), True, (0, 0, 0))
         
-        label_rect = label_surface.get_rect(center=(self.label_x + self.label_width // 2, self.label_y - 20))
-        value_rect = value_surface.get_rect(center=(self.label_x + self.label_width // 2, self.label_y))
+        label_rect = label_surface.get_rect(center=(self.label_x + self.label_width // 2, self.label_y - 30))
+        value_rect = value_surface.get_rect(center=(self.label_x + self.label_width // 2, self.label_y - 10))
         
         surface.blit(label_surface, label_rect.topleft)
         surface.blit(value_surface, value_rect.topleft)

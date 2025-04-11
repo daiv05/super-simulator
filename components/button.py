@@ -56,4 +56,6 @@ class Button:
         self.ui_button.show()
     
     def hide(self):
-        self.ui_button.hide()
+        if(self.ui_button.text != "Comenzar"):
+          print("hide", self.ui_button.text)
+        self.ui_button.visible = False

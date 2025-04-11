@@ -38,12 +38,16 @@ class Simulation:
         self.clock = pygame.time.Clock()
 
         # ------------ Controls the Simulation -------------
+
+        # Control panel height
+        self.control_panel_height = 150
+
         # Control panel
         self.sliders = [
-            Slider(50, 35, 85, 40, 2, 8, 1, "Cajeros", self.manager),
-            Slider(300, 35, 85, 40, 1, 20, 10, "Productos máx", self.manager),
-            Slider(550, 35, 85, 40, 1, 10, 5, "Frecuencia", self.manager),
-            Slider(50, 100, 85, 40, 1, 5, 2, "Tiempo/prod", self.manager)
+            Slider(50, self.control_panel_height/2, 85, 40, 2, 8, 1, "Cajeros", self.manager),
+            Slider(150, self.control_panel_height/2, 85, 40, 1, 20, 10, "# Productos", self.manager),
+            Slider(250, self.control_panel_height/2, 85, 40, 1, 10, 5, "Frecuencia", self.manager),
+            Slider(350, self.control_panel_height/2, 85, 40, 1, 5, 2, "Tiempo/prod", self.manager)
         ]
         
         # Control buttons
@@ -70,9 +74,16 @@ class Simulation:
         self.queues = []  # List of lists, one for each cashier
         self.is_running = False
         self.is_paused = False
-        
-        # Control panel height
-        self.control_panel_height = 150
+        self.total_simulation_time = 0.0  # Para el tiempo total
+
+        # Crear UILabel para mostrar el tiempo total
+        self.time_label = pygame_gui.elements.UILabel(
+            relative_rect=pygame.Rect((WINDOW_WIDTH//2 - 62, 40, 125, 30)),
+            text="00:00:0",
+            manager=self.manager,
+            visible=False,
+            object_id="#time_label"
+        )
         
     def run(self):
         running = True
@@ -128,6 +139,8 @@ class Simulation:
                             self.setup_simulation()
                             self.is_running = False
                             self.is_paused = False
+                            self.total_simulation_time = 0.0  # Reiniciar el tiempo
+                            self.time_label.set_text("00:00:0")  # Actualizar el texto
                             self.control_buttons[0].set_active(False)
                             self.control_buttons[1].set_active(False)
                                 
@@ -166,6 +179,25 @@ class Simulation:
         # Hide the start button
         self.start_button.hide()
 
+        # Draw title time label
+        title_font = pygame.font.Font(None, 30)
+        title_text = title_font.render("Tiempo Total", True, BLACK)
+        title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 25))
+        self.screen.blit(title_text, title_rect)
+
+        # Draw time label
+        self.time_label.show()
+
+        # Convertir tiempo total a MM:SS:MS
+        total_seconds = self.total_simulation_time
+        minutes = int(total_seconds // 60)
+        seconds = int(total_seconds % 60)
+        milliseconds = int((total_seconds - int(total_seconds)) * 1000)  # Parte decimal a milisegundos
+        time_str = f"{str(minutes).zfill(2)}:{str(seconds).zfill(2)}:{milliseconds}"
+        
+        # Actualizar el texto del UILabel
+        self.time_label.set_text(time_str)
+
         # Draw sliders
         for slider in self.sliders:
             slider.draw(self.screen)
@@ -201,6 +233,19 @@ class Simulation:
     def update_simulation(self, dt):
         if not self.is_running or self.is_paused:
             return
+
+        # Actualizar el tiempo total
+        self.total_simulation_time += dt
+        
+        # Convertir tiempo total a MM:SS:MS
+        total_seconds = self.total_simulation_time
+        minutes = int(total_seconds // 60)
+        seconds = int(total_seconds % 60)
+        milliseconds = int((total_seconds - int(total_seconds)) * 10)  # Parte decimal a milisegundos
+        time_str = f"{str(minutes).zfill(2)}:{str(seconds).zfill(2)}:{milliseconds}"
+        
+        # Actualizar el texto del UILabel
+        self.time_label.set_text(time_str)
             
         # Update simulation variables from sliders
         new_num_cashiers = int(self.sliders[0].get_value())
