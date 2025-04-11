@@ -44,9 +44,9 @@ class Simulation:
         # Control panel
         self.control_panel_height = 150
         self.sliders = [
-            Slider(50, 50, 85, 40, 2, 8, 1, "Cajeros", self.manager),
-            Slider(300, 50, 85, 40, 1, 20, 10, "Productos máx", self.manager),
-            Slider(550, 50, 85, 40, 1, 10, 5, "Frecuencia", self.manager),
+            Slider(50, 35, 85, 40, 2, 8, 1, "Cajeros", self.manager),
+            Slider(300, 35, 85, 40, 1, 20, 10, "Productos máx", self.manager),
+            Slider(550, 35, 85, 40, 1, 10, 5, "Frecuencia", self.manager),
             Slider(50, 100, 85, 40, 1, 5, 2, "Tiempo/prod", self.manager)
         ]
         
