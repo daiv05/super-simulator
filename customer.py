@@ -2,7 +2,7 @@ import pygame
 import random
 import os
 from components.tooltip import Tooltip
-from utils.nameGenerator import generar_nombre
+from utils.name_generator import generar_nombre
 class Customer:
     def __init__(self, x, y, max_products, time_per_product):
         self.x = x

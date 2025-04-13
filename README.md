@@ -2,25 +2,10 @@
 
 Esta es una simulación de colas en un supermercado desarrollada con Pygame.
 
-## Requisitos
+## Tecnologías
 
-- Python 3.x
-- Pygame
-
-## Instalación
-
-1. Clona este repositorio
-2. Instala las dependencias:
-```bash
-pip install -r requirements.txt
-```
-
-## Ejecución
-
-Para ejecutar la simulación:
-```bash
-python supermarket_simulation.py
-```
+- Python 3.11
+- Pygame 2.1.2
 
 ## Características
 
@@ -34,3 +19,19 @@ python supermarket_simulation.py
   - Pausar
   - Reset
 - Visualización de la simulación en tiempo real 
+
+## Instalación
+
+[Pasos para instalar y ejecutar el proyecto](INSTRUCTIONS.md)
+
+## Autores
+
+- [David Deras](https://github.com/daiv05)
+- [Elmer Molina](https://github.com/Edenilson-Molina)
+- [Susana Rivera](https://github.com/RiveraP11069)
+- [José Cruz](https://github.com/code17049)
+- [Luis Moran](https://github.com/Luis-M23)
+
+## Licencia
+
+[MIT License](LICENSE.md)
