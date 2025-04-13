@@ -1,6 +1,7 @@
 import pygame
 import random
 import os
+from components.tooltip import Tooltip
 
 class Customer:
     def __init__(self, x, y, max_products, time_per_product):
@@ -33,13 +34,27 @@ class Customer:
         # Crear fuente para los textos
         self.font = pygame.font.Font(None, 20)
         
+        # Crear tooltip
+        self.tooltip = Tooltip(0, 0, "")
+        self.update_tooltip_text()
+        
         print(f"Nuevo cliente creado: {self.num_products} productos, tiempo por producto: {self.time_per_product}s, tiempo total estimado: {self.serving_time:.1f}s")
+        
+    def update_tooltip_text(self):
+        """Actualiza el texto del tooltip con la información actual del cliente"""
+        text = f"Productos: {self.num_products}\n"
+        text += f"Espera: {self.waiting_time:.1f}s"
+        if self.is_being_served:
+            text += f"\nServicio: {self.time_served:.1f}/{self.serving_time:.1f}s"
+        self.tooltip.set_text(text)
         
     def update_position(self, x, y):
         self.x = x
         self.y = y
         self.rect.x = x
         self.rect.y = y
+        # Actualizar posición del tooltip (al lado derecho del cliente)
+        self.tooltip.update_position(self.rect.right + 10, self.rect.centery - 30)
         
     def draw(self, screen):
         # Dibujar la imagen del cliente
@@ -61,6 +76,9 @@ class Customer:
             serving_rect = serving_text.get_rect(centerx=self.rect.centerx, top=self.rect.bottom + 5)
             screen.blit(serving_text, serving_rect)
             
+        # Dibujar tooltip si está visible
+        self.tooltip.draw(screen)
+            
     def update(self, dt):
         if self.is_being_served:
             self.time_served += dt
@@ -70,4 +88,14 @@ class Customer:
         else:
             self.waiting_time += dt
             print(f"Cliente en cola. Tiempo de espera: {self.waiting_time:.1f}s")
-        return False 
+            
+        # Actualizar texto del tooltip
+        self.update_tooltip_text()
+        return False
+        
+    def handle_mouse_hover(self, mouse_pos):
+        """Maneja el hover del mouse sobre el cliente"""
+        if self.rect.collidepoint(mouse_pos):
+            self.tooltip.show()
+        else:
+            self.tooltip.hide() 

@@ -7,7 +7,7 @@ class Cashier:
         self.x = x
         self.y = y
         self.index = index
-        self.name = f"Cajero {index + 1}"
+        self.name = f"CAJA {index + 1}"
         self.is_available = True
         self.current_customer = None
         self.time_serving = 0

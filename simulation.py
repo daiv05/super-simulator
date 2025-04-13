@@ -157,7 +157,15 @@ class Simulation:
                             self.control_buttons[1].set_active(False)
                             # Habilitar el contador de cajeros
                             self.counters[0].set_enabled(True)
-                                
+                            
+            # Manejar hover del mouse
+            if event.type == pygame.MOUSEMOTION:
+                mouse_pos = pygame.mouse.get_pos()
+                # Verificar hover sobre clientes en todas las colas
+                for queue in self.queues:
+                    for customer in queue:
+                        customer.handle_mouse_hover(mouse_pos)
+            
         return True
 
     def setup_simulation(self):
