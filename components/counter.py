@@ -37,15 +37,10 @@ class Counter:
         self.label_width = width - (2 * height) - 20
 
     def set_enabled(self, enabled):
-        """Habilita o deshabilita el control y actualiza su apariencia"""
+        #Habilita o deshabilita el control y actualiza su apariencia
         self.enabled = enabled
         self.increment_button.enable() if enabled else self.increment_button.disable()
         self.decrement_button.enable() if enabled else self.decrement_button.disable()
-        
-        # Actualizar el color de los botones para indicar el estado
-        #color = (0, 0, 0) if enabled else (150, 150, 150)
-        #self.increment_button.set_text_colour(color)
-        #self.decrement_button.set_text_colour(color)
         
     def draw(self, surface):
         # Dibujar etiqueta
