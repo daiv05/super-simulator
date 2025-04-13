@@ -2,7 +2,7 @@ import pygame
 import random
 import os
 from components.tooltip import Tooltip
-
+from utils.nameGenerator import generar_nombre
 class Customer:
     def __init__(self, x, y, max_products, time_per_product):
         self.x = x
@@ -13,6 +13,7 @@ class Customer:
         self.time_served = 0
         self.waiting_time = 0
         self.is_being_served = False
+        self.name = generar_nombre()
         
         # Cargar imágenes de clientes
         self.images = []
@@ -42,7 +43,8 @@ class Customer:
         
     def update_tooltip_text(self):
         """Actualiza el texto del tooltip con la información actual del cliente"""
-        text = f"Productos: {self.num_products}\n"
+        text = f"{self.name}\n"
+        text += f"Productos: {self.num_products}\n"
         text += f"Espera: {self.waiting_time:.1f}s"
         if self.is_being_served:
             text += f"\nServicio: {self.time_served:.1f}/{self.serving_time:.1f}s"

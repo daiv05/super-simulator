@@ -1,4 +1,5 @@
 /env
 /__pycache__
 components/__pycache__
+utils/__pycache__
 /venv
