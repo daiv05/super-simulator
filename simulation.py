@@ -284,15 +284,25 @@ class Simulation:
         self.time_since_last_customer += dt
         if self.time_since_last_customer >= self.arrival_frequency:
             self.time_since_last_customer = 0
-            new_customer = Customer(0, 0, self.max_products, self.time_per_product)
-            self.customers.append(new_customer)
-            
             # Find shortest queue
             shortest_queue = min(self.queues, key=len)
-            shortest_queue.append(new_customer)
-            print(f"Nuevo cliente asignado a la cola más corta. Longitud de colas: {[len(q) for q in self.queues]}")
+            shortest_queue_index = self.queues.index(shortest_queue)
             
-        # Update cashiers and serve customers
+            # Create new customer at the end of the shortest queue
+            if len(shortest_queue) > 0:
+                last_customer = shortest_queue[-1]
+                new_x = last_customer.x
+                new_y = last_customer.y + 60
+            else:
+                cashier = self.cashiers[shortest_queue_index]
+                new_x = cashier.rect.centerx - 25  # Center under cashier
+                new_y = cashier.rect.bottom + 20
+                
+            new_customer = Customer(new_x, new_y, self.max_products, self.time_per_product)
+            shortest_queue.append(new_customer)
+            print(f"Nuevo cliente añadido a la cola {shortest_queue_index + 1}")
+            
+        # Update customers in queues
         for i, queue in enumerate(self.queues):
             cashier = self.cashiers[i]
             if cashier.is_available and queue:  # Si el cajero está disponible y hay clientes en la cola
@@ -303,12 +313,14 @@ class Simulation:
                 
             # Actualizar estado del cliente actual
             if queue and queue[0].is_being_served:
-                if queue[0].update(dt):  # Si el cliente ha terminado de ser atendido
+                if queue[0].update(dt, True):  # Cliente ha terminado
                     queue.pop(0)  # Eliminar cliente de la cola
                     cashier.is_available = True
                     print(f"Cliente atendido en cajero {i+1}. Cola actual: {len(queue)} clientes")
             
-            cashier.update(dt)
+            # Actualizar el resto de clientes en la cola
+            for customer in queue[1:]:
+                customer.update(dt, True)
             
         # Update pygame_gui manager
         self.manager.update(dt)
