@@ -61,32 +61,12 @@ class Customer:
     def draw(self, screen):
         # Dibujar la imagen del cliente
         screen.blit(self.image, self.rect)
-        
-        # Dibujar número de productos arriba
-        #products_text = self.font.render(f"{self.num_products}", True, (0, 0, 0))
-        #products_rect = products_text.get_rect(centerx=self.rect.centerx, bottom=self.rect.top - 5)
-        #screen.blit(products_text, products_rect)
-        
-        # Dibujar tiempo de espera a la derecha
-        #waiting_text = self.font.render(f"{self.waiting_time:.1f}s", True, (0, 0, 0))
-        #waiting_rect = waiting_text.get_rect(left=self.rect.right + 5, centery=self.rect.centery)
-        #screen.blit(waiting_text, waiting_rect)
-        
-        # Si está siendo atendido, mostrar tiempo de servicio abajo
-        #if self.is_being_served:
-        #    serving_text = self.font.render(f"{self.time_served:.1f}/{self.serving_time:.1f}s", True, (0, 0, 0))
-        #    serving_rect = serving_text.get_rect(centerx=self.rect.centerx, top=self.rect.bottom + 5)
-        #    screen.blit(serving_text, serving_rect)
             
         # Dibujar tooltip si está visible
         self.tooltip.draw(screen)
             
     def update(self, dt, simulation_running=True):
-        """
-        Actualiza el estado del cliente
-        dt: delta time (tiempo transcurrido desde la última actualización)
-        simulation_running: indica si la simulación está en ejecución (no pausada)
-        """
+        #Actualiza el estado del cliente
         if not simulation_running:
             return False
             
@@ -104,7 +84,7 @@ class Customer:
         return False
         
     def handle_mouse_hover(self, mouse_pos):
-        """Maneja el hover del mouse sobre el cliente"""
+        #Maneja el hover del mouse sobre el cliente
         if self.rect.collidepoint(mouse_pos):
             self.tooltip.show()
         else:
