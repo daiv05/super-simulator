@@ -33,7 +33,7 @@ class Simulation:
 
         # Initialize buttons after manager
         self.state = "welcome"
-        self.start_button = Button(WINDOW_WIDTH//2 - 100, WINDOW_HEIGHT//2 + 50, 250, 50, "INICIAR SIMULACIÓN", manager=self.manager, btn_type="#btn-init")
+        self.start_button = Button(WINDOW_WIDTH//2 - 100, WINDOW_HEIGHT//2 + 120, 250, 50, "INICIAR SIMULACIÓN", manager=self.manager, btn_type="#btn-init")
         
         self.clock = pygame.time.Clock()
 
@@ -183,13 +183,21 @@ class Simulation:
             
     def draw_welcome_screen(self):
         self.screen.fill(WHITE)
+        image_path = pygame.image.load("assets/logo-minerva.png")
+        image_width, image_height = image_path.get_size()
         
+        # Center the image horizontally and vertically
+        x_position = (WINDOW_WIDTH - image_width) // 2
+        y_position = (WINDOW_HEIGHT - image_height) // 2 - 100  # Adjust vertical position
+        self.screen.blit(image_path, (x_position, y_position))
+
         # Initialize font here
         font = pygame.font.Font(None, 48)
         welcome_text = font.render("Simulación de Clientes en Supermercado", True, BLACK)
-        welcome_rect = welcome_text.get_rect(center=(WINDOW_WIDTH//2, WINDOW_HEIGHT//2 - 50))
+        welcome_rect = welcome_text.get_rect(center=(WINDOW_WIDTH//2, y_position + image_height + 50))  # Adjust vertical spacing
         self.screen.blit(welcome_text, welcome_rect)
 
+        
         self.start_button.draw(self.screen)
         
     def draw_control_panel(self):
