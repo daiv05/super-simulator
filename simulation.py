@@ -2,7 +2,7 @@ import pygame
 import pygame_gui
 import sys
 from pygame.locals import *
-from components.slider import Slider
+from components.counter import Counter
 from customer import Customer
 from cashier import Cashier
 from components.button import Button
@@ -43,11 +43,11 @@ class Simulation:
         self.control_panel_height = 150
 
         # Control panel
-        self.sliders = [
-            Slider(50, self.control_panel_height/2, 85, 40, 2, 8, 1, "Cajeros", self.manager),
-            Slider(150, self.control_panel_height/2, 85, 40, 1, 20, 10, "# Productos", self.manager),
-            Slider(250, self.control_panel_height/2, 85, 40, 1, 10, 5, "Frecuencia", self.manager),
-            Slider(350, self.control_panel_height/2, 85, 40, 1, 5, 2, "Tiempo/prod", self.manager)
+        self.counters = [
+            Counter(50, self.control_panel_height/2, 85, 40, 2, 8, 1, "Cajeros", self.manager),
+            Counter(150, self.control_panel_height/2, 85, 40, 1, 20, 10, "# Productos", self.manager),
+            Counter(250, self.control_panel_height/2, 85, 40, 1, 10, 5, "Frecuencia", self.manager),
+            Counter(350, self.control_panel_height/2, 85, 40, 1, 5, 2, "Tiempo/prod", self.manager)
         ]
         
         # Control buttons
@@ -120,9 +120,9 @@ class Simulation:
                     self.state = "simulation"
                     self.setup_simulation()
             else:
-                # Manejar eventos de los sliders
-                for slider in self.sliders:
-                    slider.handle_event(event)
+                # Manejar eventos de los contadores
+                for counter in self.counters:
+                    counter.handle_event(event)
                     
                 # Manejar eventos de los botones de control
                 for i, button in enumerate(self.control_buttons):
@@ -132,17 +132,21 @@ class Simulation:
                             self.is_paused = False
                             self.control_buttons[0].set_active(True)
                             self.control_buttons[1].set_active(False)
+                            # Deshabilitar el contador de cajeros
+                            self.counters[0].set_enabled(False)
                         elif i == 1:  # Button "Pausar"
                             self.is_running = False
                             self.is_paused = True
                             self.control_buttons[0].set_active(False)
                             self.control_buttons[1].set_active(True)
+                            # Mantener el contador de cajeros deshabilitado
+                            self.counters[0].set_enabled(False)
                         elif i == 2:  # Button "Reset"
-                            # Restablecer valores de los sliders
-                            self.sliders[0].set_value(1)  # Cajeros
-                            self.sliders[1].set_value(10)  # Productos
-                            self.sliders[2].set_value(5)   # Frecuencia
-                            self.sliders[3].set_value(2)   # Tiempo/prod
+                            # Restablecer valores de los contadores
+                            self.counters[0].set_value(1)  # Cajeros
+                            self.counters[1].set_value(10)  # Productos
+                            self.counters[2].set_value(5)   # Frecuencia
+                            self.counters[3].set_value(2)   # Tiempo/prod
                             
                             self.setup_simulation()
                             self.is_running = False
@@ -151,6 +155,8 @@ class Simulation:
                             self.time_label.set_text("00:00:0")  # Actualizar el texto
                             self.control_buttons[0].set_active(False)
                             self.control_buttons[1].set_active(False)
+                            # Habilitar el contador de cajeros
+                            self.counters[0].set_enabled(True)
                                 
         return True
 
@@ -206,9 +212,9 @@ class Simulation:
         # Actualizar el texto del UILabel
         self.time_label.set_text(time_str)
 
-        # Draw sliders
-        for slider in self.sliders:
-            slider.draw(self.screen)
+        # Draw counters
+        for counter in self.counters:
+            counter.draw(self.screen)
             
         # Draw control buttons
         for button in self.control_buttons:
@@ -226,8 +232,8 @@ class Simulation:
             
             for j, customer in enumerate(queue):
                 # Calculate position for customer
-                customer_x = cashier.rect.centerx - (customer.width // 2)  # Center customer under cashier
-                customer_y = queue_start_y + (j * (customer.height + 10))  # Stack customers vertically
+                customer_x = cashier.rect.centerx - (customer.rect.width // 2)  # Center customer under cashier
+                customer_y = queue_start_y + (j * (customer.rect.height + 30))  # Stack customers vertically with more spacing
                 
                 # Update customer position
                 customer.update_position(customer_x, customer_y)
@@ -255,16 +261,16 @@ class Simulation:
         # Actualizar el texto del UILabel
         self.time_label.set_text(time_str)
             
-        # Update simulation variables from sliders
-        new_num_cashiers = int(self.sliders[0].get_value())
+        # Update simulation variables from counters
+        new_num_cashiers = int(self.counters[0].get_value())
         if new_num_cashiers != self.num_cashiers:
             self.num_cashiers = new_num_cashiers
             print(f"Número de cajeros cambiado a: {self.num_cashiers}")
             self.setup_simulation()
             
-        self.max_products = int(self.sliders[1].get_value())
-        self.arrival_frequency = int(self.sliders[2].get_value())
-        self.time_per_product = self.sliders[3].get_value()
+        self.max_products = int(self.counters[1].get_value())
+        self.arrival_frequency = int(self.counters[2].get_value())
+        self.time_per_product = self.counters[3].get_value()
         
         # Generate new customers
         self.time_since_last_customer += dt
