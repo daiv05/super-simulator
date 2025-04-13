@@ -133,9 +133,17 @@ class Simulation:
                             self.control_buttons[0].set_active(True)
                             self.control_buttons[1].set_active(False)
                         elif i == 1:  # Button "Pausar"
-                            self.is_paused = not self.is_paused
-                            self.control_buttons[1].set_active(self.is_paused)
+                            self.is_running = False
+                            self.is_paused = True
+                            self.control_buttons[0].set_active(False)
+                            self.control_buttons[1].set_active(True)
                         elif i == 2:  # Button "Reset"
+                            # Restablecer valores de los sliders
+                            self.sliders[0].set_value(1)  # Cajeros
+                            self.sliders[1].set_value(10)  # Productos
+                            self.sliders[2].set_value(5)   # Frecuencia
+                            self.sliders[3].set_value(2)   # Tiempo/prod
+                            
                             self.setup_simulation()
                             self.is_running = False
                             self.is_paused = False
@@ -152,11 +160,11 @@ class Simulation:
         self.queues = []
         self.time_since_last_customer = 0
         
-        # Create cashiers at the top
-        cashier_spacing = (WINDOW_WIDTH - 100) // self.num_cashiers
+        # Create cashiers at the top with proper spacing for images
+        cashier_spacing = (WINDOW_WIDTH - 200) // self.num_cashiers  # Aumentamos el espaciado para las imágenes
         for i in range(self.num_cashiers):
-            x = 50 + i * cashier_spacing
-            self.cashiers.append(Cashier(x, self.control_panel_height + 50))
+            x = 100 + i * cashier_spacing  # Ajustamos la posición inicial
+            self.cashiers.append(Cashier(x, self.control_panel_height + 50, i))
             self.queues.append([])  # Initialize empty queue for each cashier
             
     def draw_welcome_screen(self):
@@ -214,11 +222,11 @@ class Simulation:
         # Draw queues
         for i, queue in enumerate(self.queues):
             cashier = self.cashiers[i]
-            queue_start_y = cashier.y + cashier.height + 20  # Start queue 20 pixels below cashier
+            queue_start_y = cashier.rect.bottom + 20  # Start queue 20 pixels below cashier image
             
             for j, customer in enumerate(queue):
                 # Calculate position for customer
-                customer_x = cashier.x + (cashier.width - customer.width) // 2  # Center customer under cashier
+                customer_x = cashier.rect.centerx - (customer.width // 2)  # Center customer under cashier
                 customer_y = queue_start_y + (j * (customer.height + 10))  # Stack customers vertically
                 
                 # Update customer position

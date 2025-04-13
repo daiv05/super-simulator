@@ -64,3 +64,7 @@ class Slider:
     def get_value(self):
         # Obtener el valor actual
         return self.value
+    
+    def set_value(self, value):
+        # Establecer el valor actual
+        self.value = value

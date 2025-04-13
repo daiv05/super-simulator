@@ -1,36 +1,58 @@
 import pygame
+import random
+import os
 
 class Cashier:
-    def __init__(self, x, y):
+    def __init__(self, x, y, index):
         self.x = x
         self.y = y
-        self.width = 40
-        self.height = 60
-        self.rect = pygame.Rect(x, y, self.width, self.height)
-        self.color = (255, 0, 0)  # Red color for cashiers
-        self.current_customer = None
+        self.index = index
+        self.name = f"Cajero {index + 1}"
         self.is_available = True
+        self.current_customer = None
+        self.time_serving = 0
         
-    def draw(self, surface):
-        # Draw cashier
-        pygame.draw.rect(surface, self.color, self.rect)
-        pygame.draw.rect(surface, (0, 0, 0), self.rect, 2)
+        # Cargar imágenes de cajeros
+        self.images = []
+        cashier_dir = "assets/cashiers"
+        for filename in os.listdir(cashier_dir):
+            if filename.endswith(".png"):
+                image_path = os.path.join(cashier_dir, filename)
+                image = pygame.image.load(image_path)
+                # Escalar la imagen a un tamaño apropiado
+                image = pygame.transform.scale(image, (100, 100))
+                self.images.append(image)
         
-        # Draw status indicator
-        status_color = (0, 255, 0) if self.is_available else (255, 0, 0)
-        pygame.draw.circle(surface, status_color, 
-                         (self.x + self.width//2, self.y - 10), 5)
+        # Seleccionar una imagen aleatoria
+        self.image = random.choice(self.images)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
         
-    def serve_customer(self, customer):
-        if self.is_available and customer:
-            self.current_customer = customer
-            self.is_available = False
-            customer.is_being_served = True
-            return True
-        return False
+        # Crear fuente para el nombre
+        self.font = pygame.font.Font(None, 24)
+        
+    def draw(self, screen):
+        # Dibujar el nombre del cajero
+        name_text = self.font.render(self.name, True, (0, 0, 0))
+        name_rect = name_text.get_rect(centerx=self.rect.centerx, bottom=self.rect.top - 5)
+        screen.blit(name_text, name_rect)
+        
+        # Dibujar la imagen del cajero
+        screen.blit(self.image, self.rect)
         
     def update(self, dt):
         if self.current_customer:
-            if self.current_customer.update(dt):
+            self.time_serving += dt
+            if self.time_serving >= self.current_customer.serving_time:
                 self.current_customer = None
-                self.is_available = True 
+                self.is_available = True
+                self.time_serving = 0
+                
+    def serve_customer(self, customer):
+        if self.is_available:
+            self.current_customer = customer
+            self.is_available = False
+            self.time_serving = 0
+            return True
+        return False 
