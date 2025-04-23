@@ -44,10 +44,10 @@ class Simulation:
 
         # Panel de control
         self.counters = [
-            Counter(50, self.control_panel_height/2, 85, 40, 2, 8, 1, "Cajeros", self.manager),
-            Counter(150, self.control_panel_height/2, 85, 40, 1, 20, 10, "# Productos", self.manager),
-            Counter(250, self.control_panel_height/2, 85, 40, 1, 10, 5, "Frecuencia", self.manager),
-            Counter(350, self.control_panel_height/2, 85, 40, 1, 5, 2, "Tiempo/prod", self.manager)
+            Counter(50, self.control_panel_height/2, 70, 35, 1, 8, 1, "Cajeros", self.manager),
+            Counter(150, self.control_panel_height/2, 70, 35, 1, 20, 10, "# Productos", self.manager),
+            Counter(250, self.control_panel_height/2, 70, 35, 1, 10, 5, "Frecuencia (s)", self.manager),
+            Counter(350, self.control_panel_height/2, 70, 35, 1, 5, 2, "t/producto (s)", self.manager)
         ]
         
         # Botones de control
