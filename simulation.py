@@ -3,9 +3,11 @@ import pygame_gui
 import sys
 from pygame.locals import *
 from components.counter import Counter
+from components.radio_button import RadioButton
 from customer import Customer
 from cashier import Cashier
 from components.button import Button
+import random
 
 # Inicializar pygame
 pygame.init()
@@ -44,10 +46,10 @@ class Simulation:
 
         # Panel de control
         self.counters = [
-            Counter(50, self.control_panel_height/2, 70, 35, 1, 8, 1, "Cajeros", self.manager),
-            Counter(150, self.control_panel_height/2, 70, 35, 1, 20, 10, "# Productos", self.manager),
-            Counter(250, self.control_panel_height/2, 70, 35, 1, 10, 5, "Frecuencia (s)", self.manager),
-            Counter(350, self.control_panel_height/2, 70, 35, 1, 5, 2, "t/producto (s)", self.manager)
+            Counter(50, self.control_panel_height/2, 85, 40, 2, 8, 1, "Cajeros", self.manager),
+            Counter(150, self.control_panel_height/2, 85, 40, 1, 20, 10, "# Productos", self.manager),
+            Counter(250, self.control_panel_height/2, 85, 40, 1, 10, 5, "Frecuencia", self.manager),
+            Counter(350, self.control_panel_height/2, 85, 40, 1, 5, 2, "Tiempo/prod", self.manager)
         ]
         
         # Botones de control
@@ -63,6 +65,20 @@ class Simulation:
             Button(start_x + button_width + button_spacing, y_position, button_width, button_height, "", color=(150, 150, 0), hover_color=(200, 200, 0), active_color=(100, 100, 0), manager=self.manager, btn_type="#btn-pause"),
             Button(start_x + 2 * (button_width + button_spacing), y_position, button_width, button_height, "", color=(150, 0, 0), hover_color=(200, 0, 0), active_color=(100, 0, 0), manager=self.manager, btn_type="#btn-reset")
         ]
+
+        # Distribución de clientes (usando RadioButton)
+        self.distribution_radio = RadioButton(
+            850, 
+            self.control_panel_height/2 - 40,  # Ajustar Y para alinear con otros controles
+            200, 
+            100, 
+            "Distribución de llegada",
+            "Aleatoria",
+            "Fila mas corta",
+            self.manager
+        )
+        # Establecer valor inicial a "Fila mas corta"
+        self.distribution_radio.set_value(1)
         
         # ------------ Variables de la Simulación ------------------
         self.num_cashiers = 1
@@ -158,6 +174,9 @@ class Simulation:
                             # Habilitar el contador de cajeros
                             self.counters[0].set_enabled(True)
                             
+                # Manejar eventos del radio button de distribución
+                self.distribution_radio.handle_event(event)
+            
             # Manejar hover del mouse
             if event.type == pygame.MOUSEMOTION:
                 mouse_pos = pygame.mouse.get_pos()
@@ -236,6 +255,9 @@ class Simulation:
         for button in self.control_buttons:
             button.draw(self.screen)
             
+        # Draw distribution radio button
+        self.distribution_radio.draw(self.screen)
+            
     def draw_simulation(self):
         # Dibujar cajeros
         for cashier in self.cashiers:
@@ -288,27 +310,33 @@ class Simulation:
         self.arrival_frequency = int(self.counters[2].get_value())
         self.time_per_product = self.counters[3].get_value()
         
-        # Generar nuevos clientes
+        # Generate new customers
         self.time_since_last_customer += dt
         if self.time_since_last_customer >= self.arrival_frequency:
             self.time_since_last_customer = 0
-            # Encontrar la cola más corta
-            shortest_queue = min(self.queues, key=len)
-            shortest_queue_index = self.queues.index(shortest_queue)
             
-            # Crear nuevo cliente al final de la cola más corta
-            if len(shortest_queue) > 0:
-                last_customer = shortest_queue[-1]
+            if self.distribution_radio.get_value() == 0:  # Distribución aleatoria
+                # Asignar a una cola aleatoria
+                queue_index = random.randint(0, len(self.queues) - 1)
+                selected_queue = self.queues[queue_index]
+            else:  # Distribución por cola más corta
+                # Asignar a la cola más corta
+                selected_queue = min(self.queues, key=len)
+                queue_index = self.queues.index(selected_queue)
+
+            # Create new customer at the end of the selected queue
+            if len(selected_queue) > 0:
+                last_customer = selected_queue[-1]
                 new_x = last_customer.x
                 new_y = last_customer.y + 60
             else:
-                cashier = self.cashiers[shortest_queue_index]
-                new_x = cashier.rect.centerx - 25  # Centrar debajo del cajero
+                cashier = self.cashiers[queue_index]
+                new_x = cashier.rect.centerx - 25
                 new_y = cashier.rect.bottom + 20
-                
+
             new_customer = Customer(new_x, new_y, self.max_products, self.time_per_product)
-            shortest_queue.append(new_customer)
-            print(f"Nuevo cliente añadido a la cola {shortest_queue_index + 1}")
+            selected_queue.append(new_customer)
+            print(f"Nuevo cliente añadido a la cola {queue_index + 1} ({'aleatoria' if self.distribution_radio.get_value() == 0 else 'más corta'})")
             
         # Actualizar clientes en las colas
         for i, queue in enumerate(self.queues):
