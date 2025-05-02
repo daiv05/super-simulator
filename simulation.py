@@ -44,9 +44,10 @@ class Simulation:
 
         # Panel de control
         self.counters = [
-            Counter(50, self.control_panel_height/2, 85, 40, 1, 8, 1, "Cajeros", self.manager),
+            Counter(50, self.control_panel_height/2, 85, 40, 2, 8, 1, "Cajeros", self.manager),
             Counter(150, self.control_panel_height/2, 85, 40, 1, 20, 10, "# Productos", self.manager),
-            Counter(250, self.control_panel_height/2, 85, 40, 1, 10, 5, "Tiempo/prod", self.manager),
+            Counter(250, self.control_panel_height/2, 85, 40, 1, 10, 5, "Frecuencia", self.manager),
+            Counter(350, self.control_panel_height/2, 85, 40, 1, 5, 2, "Tiempo/prod", self.manager)
         ]
         
         # Botones de control
@@ -66,19 +67,28 @@ class Simulation:
         # ------------ Variables de la Simulación ------------------
         self.num_cashiers = 1
         self.max_products = 10
-        self.arrival_frequency = 3
+        self.arrival_frequency = 5  # segundos entre llegadas
         self.time_since_last_customer = 0
         self.customers = []
         self.cashiers = []
-        self.queues = []
+        self.queues = []  # Lista de listas, una para cada cajero
         self.is_running = False
         self.is_paused = False
-        self.total_simulation_time = 0.0
+        self.total_simulation_time = 0.0  # Para el tiempo total
+
+        # Crear UILabel para mostrar el tiempo total
+        self.time_label = pygame_gui.elements.UILabel(
+            relative_rect=pygame.Rect((WINDOW_WIDTH//2 - 62, 40, 125, 30)),
+            text="00:00:0",
+            manager=self.manager,
+            visible=False,
+            object_id="#time_label"
+        )
         
     def run(self):
         running = True
         while running:
-            dt = self.clock.tick(60) / 1000.0
+            dt = self.clock.tick(60) / 1000.0  # Convertir a segundos
             
             running = self.handle_events()
             
@@ -90,7 +100,7 @@ class Simulation:
             
             # Dibujar elementos de pygame_gui
             self.manager.draw_ui(self.screen)
-            self.manager.update(dt)
+            self.manager.update(dt)  # Actualizar el gestor para que los botones se dibujen correctamente
             pygame.display.flip()
             
         pygame.quit()
@@ -122,22 +132,31 @@ class Simulation:
                             self.is_paused = False
                             self.control_buttons[0].set_active(True)
                             self.control_buttons[1].set_active(False)
+                            # Deshabilitar el contador de cajeros
+                            self.counters[0].set_enabled(False)
                         elif i == 1:  # Botón "Pausar"
                             self.is_running = False
                             self.is_paused = True
                             self.control_buttons[0].set_active(False)
                             self.control_buttons[1].set_active(True)
+                            # Mantener el contador de cajeros deshabilitado
+                            self.counters[0].set_enabled(False)
                         elif i == 2:  # Botón "Reset"
-                            self.counters[0].set_value(1)
-                            self.counters[1].set_value(10)
-                            self.counters[2].set_value(2)
+                            # Restablecer valores de los contadores
+                            self.counters[0].set_value(1)  # Cajeros
+                            self.counters[1].set_value(10)  # Productos
+                            self.counters[2].set_value(5)   # Frecuencia
+                            self.counters[3].set_value(2)   # Tiempo/prod
                             
                             self.setup_simulation()
                             self.is_running = False
                             self.is_paused = False
-                            self.total_simulation_time = 0.0
+                            self.total_simulation_time = 0.0  # Reiniciar el tiempo
+                            self.time_label.set_text("00:00:0")  # Actualizar el texto
                             self.control_buttons[0].set_active(False)
                             self.control_buttons[1].set_active(False)
+                            # Habilitar el contador de cajeros
+                            self.counters[0].set_enabled(True)
                             
             # Manejar hover del mouse
             if event.type == pygame.MOUSEMOTION:
@@ -190,6 +209,25 @@ class Simulation:
         # Ocultar el botón de inicio
         self.start_button.hide()
 
+        # Dibujar título de la etiqueta de tiempo
+        title_font = pygame.font.Font(None, 30)
+        title_text = title_font.render("Tiempo Total", True, BLACK)
+        title_rect = title_text.get_rect(center=(WINDOW_WIDTH//2, 25))
+        self.screen.blit(title_text, title_rect)
+
+        # Dibujar etiqueta de tiempo
+        self.time_label.show()
+
+        # Convertir tiempo total a MM:SS:MS
+        total_seconds = self.total_simulation_time
+        minutes = int(total_seconds // 60)
+        seconds = int(total_seconds % 60)
+        milliseconds = int((total_seconds - int(total_seconds)) * 1000)  # Parte decimal a milisegundos
+        time_str = f"{str(minutes).zfill(2)}:{str(seconds).zfill(2)}:{milliseconds}"
+        
+        # Actualizar el texto del UILabel
+        self.time_label.set_text(time_str)
+
         # Dibujar contadores
         for counter in self.counters:
             counter.draw(self.screen)
@@ -226,6 +264,19 @@ class Simulation:
         if not self.is_running or self.is_paused:
             return
 
+        # Actualizar el tiempo total
+        self.total_simulation_time += dt
+        
+        # Convertir tiempo total a MM:SS:MS
+        total_seconds = self.total_simulation_time
+        minutes = int(total_seconds // 60)
+        seconds = int(total_seconds % 60)
+        milliseconds = int((total_seconds - int(total_seconds)) * 10)  # Parte decimal a milisegundos
+        time_str = f"{str(minutes).zfill(2)}:{str(seconds).zfill(2)}:{milliseconds}"
+        
+        # Actualizar el texto del UILabel
+        self.time_label.set_text(time_str)
+            
         # Actualizar variables de simulación desde los contadores
         new_num_cashiers = int(self.counters[0].get_value())
         if new_num_cashiers != self.num_cashiers:
@@ -234,8 +285,8 @@ class Simulation:
             self.setup_simulation()
             
         self.max_products = int(self.counters[1].get_value())
-        self.arrival_frequency = 3
-        self.time_per_product = self.counters[2].get_value()
+        self.arrival_frequency = int(self.counters[2].get_value())
+        self.time_per_product = self.counters[3].get_value()
         
         # Generar nuevos clientes
         self.time_since_last_customer += dt
