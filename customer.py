@@ -77,7 +77,7 @@ class Customer:
                 return True
         else:
             self.waiting_time += dt
-            print(f"Cliente en cola. Tiempo de espera: {self.waiting_time:.1f}s")
+            #print(f"Cliente en cola. Tiempo de espera: {self.waiting_time:.1f}s")
             
         # Actualizar texto del tooltip
         self.update_tooltip_text()
