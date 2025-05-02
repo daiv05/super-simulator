@@ -37,6 +37,8 @@ class Simulation:
         
         self.clock = pygame.time.Clock()
 
+        self.speed_multiplier = 1.0  # Multiplicador de velocidad de la simulación
+
         # ------------ Controles de la Simulación -------------
 
         # Altura del panel de control
@@ -62,6 +64,21 @@ class Simulation:
             Button(start_x + button_width + button_spacing, y_position, button_width, button_height, "", color=(150, 150, 0), hover_color=(200, 200, 0), active_color=(100, 100, 0), manager=self.manager, btn_type="#btn-pause"),
             Button(start_x + 2 * (button_width + button_spacing), y_position, button_width, button_height, "", color=(150, 0, 0), hover_color=(200, 0, 0), active_color=(100, 0, 0), manager=self.manager, btn_type="#btn-reset")
         ]
+        #Botones de velocidad
+        
+        # self.speed_buttons = [
+        #     Button(WINDOW_WIDTH - 220, 20, 60, 60, "x0.5", color=(100, 100, 255), hover_color=(130, 130, 255), active_color=(70, 70, 200), manager=self.manager, btn_type="#btn-slow"),
+        #     Button(WINDOW_WIDTH - 150, 20, 60, 60, "x1",   color=(100, 255, 100), hover_color=(130, 255, 130), active_color=(70, 200, 70), manager=self.manager, btn_type="#btn-normal"),
+        #     Button(WINDOW_WIDTH - 80, 20, 60, 60, "x2",   color=(255, 100, 100), hover_color=(255, 130, 130), active_color=(200, 70, 70), manager=self.manager, btn_type="#btn-fast")
+        # ]
+
+        self.speed_buttons = [
+            Button(WINDOW_WIDTH - 220, 20, 60, 60, "x0.5",color=(157, 191, 255), hover_color=(0, 200, 0), active_color=(0, 100, 0), btn_type="#btn-x0.5"),
+            Button(WINDOW_WIDTH - 150, 20, 60, 60, "x1", color=(150, 150, 0), hover_color=(200, 200, 0), active_color=(100, 100, 0), btn_type="#btn-x1"),
+            Button(WINDOW_WIDTH - 80, 20, 60, 60, "x2", color=(150, 0, 0), hover_color=(200, 0, 0), active_color=(100, 0, 0), btn_type="#btn-x2")
+        ]
+
+# color=(157, 191, 255)
         
         # ------------ Variables de la Simulación ------------------
         self.num_cashiers = 1
@@ -78,8 +95,7 @@ class Simulation:
     def run(self):
         running = True
         while running:
-            dt = self.clock.tick(60) / 1000.0
-            
+            dt = self.clock.tick(60 ) / 1000.0 * self.speed_multiplier # Convertir a segundos y aplicar el multiplicador de velocidad
             running = self.handle_events()
             
             if self.state == "welcome":
@@ -110,10 +126,18 @@ class Simulation:
                     self.state = "simulation"
                     self.setup_simulation()
             else:
-                # Manejar eventos de los contadores
-                for counter in self.counters:
-                    counter.handle_event(event)
-                    
+                # Manejar eventos de los botones de velocidad
+                for i, button in enumerate(self.speed_buttons):
+                    if button.handle_event(event):
+                        if i == 0:  # Botón "x0.5"
+                            self.speed_multiplier = 0.5
+                            print("Velocidad ajustada a x0.5")
+                        elif i == 1:  # Botón "x1"
+                            self.speed_multiplier = 1
+                            print("Velocidad ajustada a x1")
+                        elif i == 2:  # Botón "x2"
+                            self.speed_multiplier = 2
+                            print("Velocidad ajustada a x2")
                 # Manejar eventos de los botones de control
                 for i, button in enumerate(self.control_buttons):
                     if button.handle_event(event):
@@ -138,6 +162,10 @@ class Simulation:
                             self.total_simulation_time = 0.0
                             self.control_buttons[0].set_active(False)
                             self.control_buttons[1].set_active(False)
+                            
+                # Manejar eventos de los contadores
+                for counter in self.counters:
+                    counter.handle_event(event)
                             
             # Manejar hover del mouse
             if event.type == pygame.MOUSEMOTION:
@@ -197,6 +225,10 @@ class Simulation:
         # Dibujar botones de control
         for button in self.control_buttons:
             button.draw(self.screen)
+
+        # Dibujar botones de velocidad
+        for button in self.speed_buttons:
+            button.draw(self.screen)    
             
     def draw_simulation(self):
         # Dibujar cajeros
@@ -221,6 +253,11 @@ class Simulation:
         self.screen.fill(WHITE)
         self.draw_control_panel()
         self.draw_simulation()
+
+        # Mostrar velocidad actual
+        font = pygame.font.SysFont(None, 24)
+        speed_text = font.render(f"Velocidad: x{self.speed_multiplier}", True, (0, 0, 0))
+        self.screen.blit(speed_text, (10, self.control_panel_height + 10))
         
     def update_simulation(self, dt):
         if not self.is_running or self.is_paused:
