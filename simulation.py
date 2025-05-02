@@ -39,6 +39,8 @@ class Simulation:
 
         self.speed_multiplier = 1.0  # Multiplicador de velocidad de la simulación
 
+        
+
         # ------------ Controles de la Simulación -------------
 
         # Altura del panel de control
@@ -182,6 +184,7 @@ class Simulation:
         self.cashiers = []
         self.queues = []
         self.time_since_last_customer = 0
+        self.simulation_time = 0.0  # Reiniciar el tiempo transcurrido
         
         # Crear cajeros en la parte superior con el espaciado adecuado para las imágenes
         cashier_spacing = (WINDOW_WIDTH - 200) // self.num_cashiers  # Aumentamos el espaciado para las imágenes
@@ -258,11 +261,20 @@ class Simulation:
         font = pygame.font.SysFont(None, 24)
         speed_text = font.render(f"Velocidad: x{self.speed_multiplier}", True, (0, 0, 0))
         self.screen.blit(speed_text, (10, self.control_panel_height + 10))
+
+        # Mostrar tiempo transcurrido
+        minutes = int(self.simulation_time // 60)
+        seconds = int(self.simulation_time % 60)
+        timer_text = font.render(f"Tiempo: {minutes:02}:{seconds:02}", True, (0, 0, 0))
+        # Calcular centro sobre los botones de control
+        timer_rect = timer_text.get_rect(center=(WINDOW_WIDTH // 2, 50))
+        self.screen.blit(timer_text, timer_rect)
+
         
     def update_simulation(self, dt):
         if not self.is_running or self.is_paused:
             return
-
+        self.simulation_time += dt
         # Actualizar variables de simulación desde los contadores
         new_num_cashiers = int(self.counters[0].get_value())
         if new_num_cashiers != self.num_cashiers:
