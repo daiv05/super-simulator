@@ -7,6 +7,7 @@ from components.radio_button import RadioButton
 from customer import Customer
 from cashier import Cashier
 from components.button import Button
+from components.input_number import InputNumber
 import random
 
 # Inicializar pygame
