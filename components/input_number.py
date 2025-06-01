@@ -16,16 +16,16 @@ class InputNumber:
         self.enabled = True
         
         # Crear fuentes
-        self.title_font = pygame.font.Font(None, 24)
-        self.value_font = pygame.font.Font(None, 32)
-        self.subtitle_font = pygame.font.Font(None, 20)
+        self.title_font = pygame.font.Font(None, 20)
+        self.value_font = pygame.font.Font(None, 24)
+        self.subtitle_font = pygame.font.Font(None, 15)
         
         # Crear el rectángulo de entrada
         self.input_rect = pygame.Rect(
-            x + (width - 100) // 2,  # Centrar el rectángulo
-            y + 40,  # Espacio para el título
-            100,  # Ancho fijo del rectángulo
-            40   # Alto fijo del rectángulo
+            x + (width - 80) // 2,  # Centrar el rectángulo
+            y + 20,  # Espacio para el título
+            80,  # Ancho fijo del rectángulo
+            35   # Alto fijo del rectángulo
         )
         
         # Variable para controlar si el input está activo
@@ -40,10 +40,14 @@ class InputNumber:
         
         # Dibujar rectángulo blanco para el valor
         pygame.draw.rect(surface, (255, 255, 255), self.input_rect)
-        pygame.draw.rect(surface, (0, 0, 0), self.input_rect, 1)  # Borde negro
         
-        # Dibujar valor
-        value_surface = self.value_font.render(str(self.value), True, (0, 0, 0))
+        # Cambiar color del borde si está activo
+        border_color = (0, 150, 255) if self.active else (0, 0, 0) # Azul claro si activo, negro si no
+        pygame.draw.rect(surface, border_color, self.input_rect, 2)  # Borde con grosor 2
+        
+        # Dibujar valor o texto de entrada
+        text_to_render = self.text_input if self.active else str(self.value)
+        value_surface = self.value_font.render(text_to_render, True, (0, 0, 0))
         value_rect = value_surface.get_rect(center=self.input_rect.center)
         surface.blit(value_surface, value_rect)
         
@@ -84,8 +88,9 @@ class InputNumber:
                 # Validar longitud máxima
                 if len(self.text_input) > 3:  # Limitar a 3 dígitos
                     self.text_input = self.text_input[:3]
+            print(f'InputNumber: Text input updated to {self.text_input}')
             return True
-            
+        print('InputNumber: No event handled')
         return False
         
     def get_value(self):
