@@ -22,7 +22,7 @@ class Select:
         padding = 20
         self.select_rect = pygame.Rect(
             x + (width - 200) // 2,  # Centrar el rectángulo
-            y + 40,  # Espacio para el título
+            y + 20,  # Espacio para el título
             200,  # Ancho fijo del rectángulo
             40   # Alto fijo del rectángulo
         )

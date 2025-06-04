@@ -8,6 +8,7 @@ from customer import Customer
 from cashier import Cashier
 from components.button import Button
 from components.input_number import InputNumber
+from components.select import Select
 import random
 
 # Inicializar pygame
@@ -88,7 +89,7 @@ class Simulation:
         )
         # Establecer valor inicial a "Fila mas corta"
         self.distribution_radio.set_value(1)
-        
+
         # ------------ Variables de la Simulación ------------------
         self.num_cashiers = 1
         self.max_products = 10
@@ -110,6 +111,20 @@ class Simulation:
             object_id="#time_label"
         )
         
+        self.card_payment_cashier = None
+
+        # Pago con tarjeta (usando Select)
+        self.payment_select = Select(
+            1100, 
+            self.control_panel_height/2 - 10,  # Ajustar Y para alinear con otros controles
+            200, 
+            100, 
+            "Método de Pago",
+            [f"CAJA {i + 1}" for i in range(self.num_cashiers)],  # Generar opciones dinámicamente
+            self.manager
+        )
+        
+
     def run(self):
         running = True
         while running:
@@ -197,6 +212,9 @@ class Simulation:
                             
                 # Manejar eventos del radio button de distribución
                 self.distribution_radio.handle_event(event)
+
+                # Manejar eventos del select de método de pago
+                self.payment_select.handle_event(event)
             
             # Manejar hover del mouse
             if event.type == pygame.MOUSEMOTION:
@@ -220,7 +238,10 @@ class Simulation:
             x = 100 + i * cashier_spacing  # Ajustamos la posición inicial
             self.cashiers.append(Cashier(x, self.control_panel_height + 50, i))
             self.queues.append([])  # Inicializar cola vacía para cada cajero
-            
+        
+        # Actualizar opciones del select de método de pago
+        self.payment_select.options = [f"CAJA {i + 1}" for i in range(self.num_cashiers)]
+
     def draw_welcome_screen(self):
         self.screen.fill(WHITE)
         image_path = pygame.image.load("assets/logo-minerva.png")
@@ -282,6 +303,9 @@ class Simulation:
 
         # Draw distribution radio button
         self.distribution_radio.draw(self.screen)
+
+        # Draw payment select dropdown
+        self.payment_select.draw(self.screen)
             
     def draw_simulation(self):
         # Dibujar cajeros
@@ -317,7 +341,16 @@ class Simulation:
             return
 
         # Actualizar el tiempo total
-        self.total_simulation_time += dt
+        self.total_simulation_time += dt  # Actualizar opciones dinámicamente
+        
+        selected_cashier_name = self.payment_select.get_value()
+        for cashier in self.cashiers:
+            if cashier.name == selected_cashier_name:
+                print(f"Caja seleccionada: {cashier.name}")
+                cashier.accepts_card_payment = True
+                self.card_payment_cashier = cashier
+            else:
+                cashier.accepts_card_payment = False
         
         # Convertir tiempo total a MM:SS:MS
         total_seconds = self.total_simulation_time
@@ -344,7 +377,7 @@ class Simulation:
         self.time_since_last_customer += dt
         if self.time_since_last_customer >= self.arrival_frequency:
             self.time_since_last_customer = 0
-            
+
             if self.distribution_radio.get_value() == 0:  # Distribución aleatoria
                 # Asignar a una cola aleatoria
                 queue_index = random.randint(0, len(self.queues) - 1)
@@ -365,6 +398,16 @@ class Simulation:
                 new_y = cashier.rect.bottom + 20
 
             new_customer = Customer(new_x, new_y, self.max_products, self.time_per_product)
+
+            if(new_customer.uses_card_payment and self.card_payment_cashier):
+                # Buscar el índice del cajero que acepta pago con tarjeta
+                for idx, cashier in enumerate(self.cashiers):
+                    if cashier.accepts_card_payment == self.card_payment_cashier.accepts_card_payment:
+                        queue_index = idx
+                        print(f"Cliente asignado a la caja {idx +1 } (pago con tarjeta)")
+                        break
+                selected_queue = self.queues[queue_index]
+
             selected_queue.append(new_customer)
             print(f"Nuevo cliente añadido a la cola {queue_index + 1} ({'aleatoria' if self.distribution_radio.get_value() == 0 else 'más corta'})")
             
@@ -375,15 +418,15 @@ class Simulation:
                 customer = queue[0]
                 customer.is_being_served = True
                 cashier.is_available = False
-                print(f"Cliente comenzando a ser atendido en cajero {i+1}. Tiempo de espera previo: {customer.waiting_time:.1f}s")
-                
+                print(f"Cliente comenzando a ser atendido en {cashier.name}. Tiempo de espera previo: {customer.waiting_time:.1f}s")
+
             # Actualizar estado del cliente actual
             if queue and queue[0].is_being_served:
                 if queue[0].update(dt, True):  # Cliente ha terminado
                     queue.pop(0)  # Eliminar cliente de la cola
                     cashier.is_available = True
-                    print(f"Cliente atendido en cajero {i+1}. Cola actual: {len(queue)} clientes")
-            
+                    print(f"Cliente atendido en {cashier.name}. Cola actual: {len(queue)} clientes")
+
             # Actualizar el resto de clientes en la cola
             for customer in queue[1:]:
                 customer.update(dt, True)

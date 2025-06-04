@@ -35,6 +35,9 @@ class Customer:
         # Crear fuente para los textos
         self.font = pygame.font.Font(None, 20)
         
+        # Determinar si el cliente paga con tarjeta
+        self.uses_card_payment = random.choice([True, False])
+        
         # Crear tooltip
         self.tooltip = Tooltip(0, 0, "")
         self.update_tooltip_text()
@@ -48,6 +51,8 @@ class Customer:
         text += f"Espera: {self.waiting_time:.1f}s"
         if self.is_being_served:
             text += f"\nServicio: {self.time_served:.1f}/{self.serving_time:.1f}s"
+        if self.uses_card_payment:
+            text += "\nPago con tarjeta"
         self.tooltip.set_text(text)
         
     def update_position(self, x, y):
@@ -88,4 +93,4 @@ class Customer:
         if self.rect.collidepoint(mouse_pos):
             self.tooltip.show()
         else:
-            self.tooltip.hide() 
+            self.tooltip.hide()
