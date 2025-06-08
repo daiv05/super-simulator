@@ -65,10 +65,11 @@ class Simulation:
         y_position = 85
 
         self.control_buttons = [
-            Button(start_x, y_position, button_width, button_height, "", color=(0, 150, 0), hover_color=(0, 200, 0), active_color=(0, 100, 0), manager=self.manager, btn_type="#btn-start"),
-            Button(start_x + button_width + button_spacing, y_position, button_width, button_height, "", color=(150, 150, 0), hover_color=(200, 200, 0), active_color=(100, 100, 0), manager=self.manager, btn_type="#btn-pause"),
-            Button(start_x + 2 * (button_width + button_spacing), y_position, button_width, button_height, "", color=(150, 0, 0), hover_color=(200, 0, 0), active_color=(100, 0, 0), manager=self.manager, btn_type="#btn-reset")
+            Button(start_x, y_position, button_width, button_height, "", color=(0, 150, 0), hover_color=(0, 200, 0), active_color=(0, 100, 0), manager=self.manager, btn_type="#btn-start", enabled=True),
+            Button(start_x + button_width + button_spacing, y_position, button_width, button_height, "", color=(150, 150, 0), hover_color=(200, 200, 0), active_color=(100, 100, 0), manager=self.manager, btn_type="#btn-pause", enabled=False),
+            Button(start_x + 2 * (button_width + button_spacing), y_position, button_width, button_height, "", color=(150, 0, 0), hover_color=(200, 0, 0), active_color=(100, 0, 0), manager=self.manager, btn_type="#btn-reset", enabled=True)
         ]
+        
         #botones de velocida4
         self.speed_buttons = [
             Button(WINDOW_WIDTH - 220, 20, 40, 40, "x0.5", color=(157, 191, 255), hover_color=(0, 200, 0), active_color=(0, 100, 0), btn_type="#btn-x0.5"),
@@ -180,17 +181,25 @@ class Simulation:
                             self.is_paused = False
                             self.control_buttons[0].set_active(True)
                             self.control_buttons[1].set_active(False)
+                            self.control_buttons[0].set_enabled(False)
+                            self.control_buttons[1].set_enabled(True)
+                            # Desactivar counter de cajeros
+                            self.counters[0].set_enabled(False)
                         elif i == 1:  # Botón "Pausar"
                             self.is_running = False
                             self.is_paused = True
                             self.control_buttons[0].set_active(False)
                             self.control_buttons[1].set_active(True)
+                            self.control_buttons[0].set_enabled(True)
+                            self.control_buttons[1].set_enabled(False)
+                            # Desactivar counter de cajeros
+                            self.counters[0].set_enabled(False)
                         elif i == 2:  # Botón "Reset"
                             # Restablecer valores de los contadores
                             self.counters[0].set_value(1)  # Cajeros
                             self.counters[1].set_value(10)  # Productos
-                            self.counters[2].set_value(5)   # Frecuencia
-                            self.counters[3].set_value(2)   # Tiempo/prod
+                            self.counters[2].set_value(3)   # Frecuencia
+                            self.counters[3].set_value(5)   # Tiempo/prod
                             # Actualizar número de cajeros y opciones del select
                             self.num_cashiers = 1
                             self.payment_select.options = [f"CAJA {i + 1}" for i in range(self.num_cashiers)]
@@ -201,6 +210,10 @@ class Simulation:
                             self.time_label.set_text("00:00:0")  # Actualizar el texto
                             self.control_buttons[0].set_active(False)
                             self.control_buttons[1].set_active(False)
+                            self.control_buttons[0].set_enabled(True)
+                            self.control_buttons[1].set_enabled(False)
+                            # Activar counter de cajeros
+                            self.counters[0].set_enabled(True)
                 # Manejar eventos de los contadores
                 for i, counter in enumerate(self.counters):
                     if counter.handle_event(event):

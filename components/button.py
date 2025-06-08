@@ -8,7 +8,7 @@ import pygame_gui
 # Botón de reinicio: #btn-restart
 
 class Button:
-    def __init__(self, x, y, width, height, text, color=(0, 0, 255), hover_color=(0, 0, 200), active_color=(0, 200, 0), manager=None, btn_type=""):
+    def __init__(self, x, y, width, height, text, color=(0, 0, 255), hover_color=(0, 0, 200), active_color=(0, 200, 0), manager=None, btn_type="", enabled=True):
         self.text = text
         self.color = color #NOTA: innecesario por el momento
         self.hover_color = hover_color #NOTA: innecesario por el momento
@@ -32,6 +32,9 @@ class Button:
             visible=False
         )
 
+        # Habilitar o deshabilitar el botón
+        self.set_enabled(enabled)
+
     def handle_event(self, event):
         # Verifica si el boton fue presionado usando eventos de pygame_gui
         if event.type == pygame.USEREVENT:
@@ -50,6 +53,11 @@ class Button:
     def set_active(self, active):
         # Establece el estado activo del botón
         self.is_active = active
+    
+    def set_enabled(self, enabled):
+        # Habilita o deshabilita el botón y actualiza su apariencia
+        self.ui_button.enable() if enabled else self.ui_button.disable()
+        # self.ui_button.visible = enabled
     
     def draw(self, surface):
         self.ui_button.show()
