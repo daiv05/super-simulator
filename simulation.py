@@ -120,7 +120,7 @@ class Simulation:
             self.control_panel_height/2,  # Ajustar Y para alinear con otros controles
             200, 
             100, 
-            "Método de Pago",
+            "Pago con tarjeta",
             [f"CAJA {i + 1}" for i in range(self.num_cashiers)],  # Generar opciones dinámicamente
             self.manager
         )
