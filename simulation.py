@@ -71,7 +71,7 @@ class Simulation:
         ]
         #botones de velocida4
         self.speed_buttons = [
-            Button(WINDOW_WIDTH - 220, 20, 40, 40, "x0.5",color=(157, 191, 255), hover_color=(0, 200, 0), active_color=(0, 100, 0), btn_type="#btn-x0.5"),
+            Button(WINDOW_WIDTH - 220, 20, 40, 40, "x0.5", color=(157, 191, 255), hover_color=(0, 200, 0), active_color=(0, 100, 0), btn_type="#btn-x0.5"),
             Button(WINDOW_WIDTH - 150, 20, 40, 40, "x1", color=(150, 150, 0), hover_color=(200, 200, 0), active_color=(100, 100, 0), btn_type="#btn-x1"),
             Button(WINDOW_WIDTH - 80, 20, 40, 40, "x2", color=(150, 0, 0), hover_color=(200, 0, 0), active_color=(100, 0, 0), btn_type="#btn-x2")
         ]
@@ -115,8 +115,8 @@ class Simulation:
 
         # Pago con tarjeta (usando Select)
         self.payment_select = Select(
-            1100, 
-            self.control_panel_height/2 - 10,  # Ajustar Y para alinear con otros controles
+            1030, 
+            self.control_panel_height/2,  # Ajustar Y para alinear con otros controles
             200, 
             100, 
             "Método de Pago",
@@ -180,22 +180,20 @@ class Simulation:
                             self.is_paused = False
                             self.control_buttons[0].set_active(True)
                             self.control_buttons[1].set_active(False)
-                            # Deshabilitar el contador de cajeros
-                            self.counters[0].set_enabled(False)
                         elif i == 1:  # Botón "Pausar"
                             self.is_running = False
                             self.is_paused = True
                             self.control_buttons[0].set_active(False)
                             self.control_buttons[1].set_active(True)
-                            # Mantener el contador de cajeros deshabilitado
-                            self.counters[0].set_enabled(False)
                         elif i == 2:  # Botón "Reset"
                             # Restablecer valores de los contadores
                             self.counters[0].set_value(1)  # Cajeros
                             self.counters[1].set_value(10)  # Productos
                             self.counters[2].set_value(5)   # Frecuencia
                             self.counters[3].set_value(2)   # Tiempo/prod
-                            
+                            # Actualizar número de cajeros y opciones del select
+                            self.num_cashiers = 1
+                            self.payment_select.options = [f"CAJA {i + 1}" for i in range(self.num_cashiers)]
                             self.setup_simulation()
                             self.is_running = False
                             self.is_paused = False
@@ -203,18 +201,33 @@ class Simulation:
                             self.time_label.set_text("00:00:0")  # Actualizar el texto
                             self.control_buttons[0].set_active(False)
                             self.control_buttons[1].set_active(False)
-                            # Habilitar el contador de cajeros
-                            self.counters[0].set_enabled(True)
-
-                 # Manejar eventos de los contadores
-                for counter in self.counters:
-                    counter.handle_event(event)
+                # Manejar eventos de los contadores
+                for i, counter in enumerate(self.counters):
+                    if counter.handle_event(event):
+                        # Si es el contador de cajeros (índice 0)
+                        if i == 0:
+                            new_num_cashiers = counter.get_value()
+                            if new_num_cashiers != self.num_cashiers:
+                                self.num_cashiers = new_num_cashiers
+                                print(f"Número de cajeros cambiado a: {self.num_cashiers}")
+                                # Actualizar las opciones del select
+                                self.payment_select.options = [f"CAJA {i + 1}" for i in range(self.num_cashiers)]
+                                if not self.is_running:
+                                    self.setup_simulation()
                             
                 # Manejar eventos del radio button de distribución
                 self.distribution_radio.handle_event(event)
 
                 # Manejar eventos del select de método de pago
-                self.payment_select.handle_event(event)
+                if self.payment_select.handle_event(event):
+                    selected_value = self.payment_select.get_value()
+                    print(f"Método de pago seleccionado: {selected_value}")
+                    # Actualizar el cajero que acepta pago con tarjeta
+                    for cashier in self.cashiers:
+                        if cashier.name == selected_value:
+                            self.card_payment_cashier = cashier
+                            print(f"Cajero seleccionado para pago con tarjeta: {cashier.name}")
+                            break
             
             # Manejar hover del mouse
             if event.type == pygame.MOUSEMOTION:
@@ -343,6 +356,19 @@ class Simulation:
         # Actualizar el tiempo total
         self.total_simulation_time += dt  # Actualizar opciones dinámicamente
         
+        # Actualizar variables de simulación desde los contadores
+        new_num_cashiers = int(self.counters[0].get_value())
+        if new_num_cashiers != self.num_cashiers:
+            self.num_cashiers = new_num_cashiers
+            print(f"Número de cajeros cambiado a: {self.num_cashiers}")
+            # Actualizar las opciones del select antes de reiniciar la simulación
+            self.payment_select.options = [f"CAJA {i + 1}" for i in range(self.num_cashiers)]
+            self.setup_simulation()
+            
+        self.max_products = int(self.counters[1].get_value())
+        self.arrival_frequency = int(self.counters[2].get_value())
+        self.time_per_product = self.counters[3].get_value()
+        
         selected_cashier_name = self.payment_select.get_value()
         for cashier in self.cashiers:
             if cashier.name == selected_cashier_name:
@@ -362,17 +388,6 @@ class Simulation:
         # Actualizar el texto del UILabel
         self.time_label.set_text(time_str)
             
-        # Actualizar variables de simulación desde los contadores
-        new_num_cashiers = int(self.counters[0].get_value())
-        if new_num_cashiers != self.num_cashiers:
-            self.num_cashiers = new_num_cashiers
-            print(f"Número de cajeros cambiado a: {self.num_cashiers}")
-            self.setup_simulation()
-            
-        self.max_products = int(self.counters[1].get_value())
-        self.arrival_frequency = int(self.counters[2].get_value())
-        self.time_per_product = self.counters[3].get_value()
-        
         # Generate new customers
         self.time_since_last_customer += dt
         if self.time_since_last_customer >= self.arrival_frequency:

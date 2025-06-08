@@ -35,8 +35,14 @@ class Customer:
         # Crear fuente para los textos
         self.font = pygame.font.Font(None, 20)
         
-        # Determinar si el cliente paga con tarjeta
-        self.uses_card_payment = random.choice([True, False])
+        # Determinar si el cliente paga con tarjeta (probabilidad del 30%)
+        self.uses_card_payment = random.random() < 0.3
+
+        # Cargar ícono de pago con tarjeta si es necesario
+        self.card_icon = None
+        if self.uses_card_payment:
+            self.card_icon = pygame.image.load("assets/atm-card.png")
+            self.card_icon = pygame.transform.scale(self.card_icon, (30, 30))
         
         # Crear tooltip
         self.tooltip = Tooltip(0, 0, "")
@@ -51,8 +57,6 @@ class Customer:
         text += f"Espera: {self.waiting_time:.1f}s"
         if self.is_being_served:
             text += f"\nServicio: {self.time_served:.1f}/{self.serving_time:.1f}s"
-        if self.uses_card_payment:
-            text += "\nPago con tarjeta"
         self.tooltip.set_text(text)
         
     def update_position(self, x, y):
@@ -61,12 +65,16 @@ class Customer:
         self.rect.x = x
         self.rect.y = y
         # Actualizar posición del tooltip (al lado derecho del cliente)
-        self.tooltip.update_position(self.rect.right + 10, self.rect.centery - 30)
+        self.tooltip.update_position(self.rect.right - 80, self.rect.top - 90)
         
     def draw(self, screen):
         # Dibujar la imagen del cliente
         screen.blit(self.image, self.rect)
-            
+        
+        # Dibujar ícono de pago con tarjeta si es necesario
+        if self.uses_card_payment and self.card_icon:
+            screen.blit(self.card_icon, (self.rect.right - 15, self.rect.top + 20))
+
         # Dibujar tooltip si está visible
         self.tooltip.draw(screen)
             

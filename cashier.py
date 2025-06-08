@@ -11,7 +11,7 @@ class Cashier:
         self.is_available = True
         self.current_customer = None
         self.time_serving = 0
-        self.accepts_card_payment = True
+        self.accepts_card_payment = False
         
         # Cargar imágenes de cajeros
         self.images = []
@@ -50,7 +50,7 @@ class Cashier:
         
         # Dibujar ícono de pago con tarjeta si es necesario
         if self.accepts_card_payment and self.card_icon:
-            screen.blit(self.card_icon, (self.rect.right - 35, self.rect.top - 35))
+            screen.blit(self.card_icon, (self.rect.right - 35, self.rect.top + 80))
         
     def update(self, dt):
         if self.current_customer:
