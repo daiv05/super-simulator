@@ -202,7 +202,6 @@ class Simulation:
                             self.counters[3].set_value(5)   # Tiempo/prod
                             # Actualizar número de cajeros y opciones del select
                             self.num_cashiers = 1
-                            self.payment_select.options = [f"CAJA {i + 1}" for i in range(self.num_cashiers)]
                             self.setup_simulation()
                             self.is_running = False
                             self.is_paused = False
@@ -234,7 +233,6 @@ class Simulation:
                 # Manejar eventos del select de método de pago
                 if self.payment_select.handle_event(event):
                     selected_value = self.payment_select.get_value()
-                    print(f"Método de pago seleccionado: {selected_value}")
                     # Actualizar el cajero que acepta pago con tarjeta
                     for cashier in self.cashiers:
                         if cashier.name == selected_value:
@@ -267,6 +265,9 @@ class Simulation:
         
         # Actualizar opciones del select de método de pago
         self.payment_select.options = [f"CAJA {i + 1}" for i in range(self.num_cashiers)]
+        # Reiniciar el cajero que acepta pago con tarjeta
+        self.payment_select.set_value("CAJA 1")  # Por defecto, el primer cajero acepta pago con tarjeta
+        self.card_payment_cashier = self.cashiers[0]  # Por defecto, el primer cajero acepta pago con tarjeta
 
     def draw_welcome_screen(self):
         self.screen.fill(WHITE)
@@ -368,16 +369,7 @@ class Simulation:
 
         # Actualizar el tiempo total
         self.total_simulation_time += dt  # Actualizar opciones dinámicamente
-        
-        # Actualizar variables de simulación desde los contadores
-        new_num_cashiers = int(self.counters[0].get_value())
-        if new_num_cashiers != self.num_cashiers:
-            self.num_cashiers = new_num_cashiers
-            print(f"Número de cajeros cambiado a: {self.num_cashiers}")
-            # Actualizar las opciones del select antes de reiniciar la simulación
-            self.payment_select.options = [f"CAJA {i + 1}" for i in range(self.num_cashiers)]
-            self.setup_simulation()
-            
+
         self.max_products = int(self.counters[1].get_value())
         self.arrival_frequency = int(self.counters[2].get_value())
         self.time_per_product = self.counters[3].get_value()
@@ -385,11 +377,11 @@ class Simulation:
         selected_cashier_name = self.payment_select.get_value()
         for cashier in self.cashiers:
             if cashier.name == selected_cashier_name:
-                print(f"Caja seleccionada: {cashier.name}")
                 cashier.accepts_card_payment = True
                 self.card_payment_cashier = cashier
             else:
                 cashier.accepts_card_payment = False
+            cashier.update(dt, self.screen)  # Actualizar el estado del cajero
         
         # Convertir tiempo total a MM:SS:MS
         total_seconds = self.total_simulation_time

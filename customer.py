@@ -48,7 +48,7 @@ class Customer:
         self.tooltip = Tooltip(0, 0, "")
         self.update_tooltip_text()
         
-        print(f"Nuevo cliente creado: {self.num_products} productos, tiempo por producto: {self.time_per_product}s, tiempo total estimado: {self.serving_time:.1f}s")
+        print(f"Nuevo cliente: {self.num_products} productos, tiempo por producto: {self.time_per_product}s, tiempo total estimado: {self.serving_time:.1f}s")
         
     def update_tooltip_text(self):
         """Actualiza el texto del tooltip con la información actual del cliente"""
