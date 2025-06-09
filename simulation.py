@@ -1,20 +1,21 @@
 import pygame
 import pygame_gui
 import sys
+import random
 from pygame.locals import *
 from components.counter import Counter
 from components.radio_button import RadioButton
 from customer import Customer
 from cashier import Cashier
 from components.button import Button
+
 from components.input_number import InputNumber
-import random
 
 # Inicializar pygame
 pygame.init()
 
 # Constantes
-WINDOW_WIDTH = 1400
+WINDOW_WIDTH = 1500
 WINDOW_HEIGHT = 700
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -47,20 +48,35 @@ class Simulation:
         # Altura del panel de control
         self.control_panel_height = 150
 
-        # Panel de control
+        # Layout dinámico horizontal para controles
+        x_inicio = 50
+        espacio_horizontal = 100
+        y_control = self.control_panel_height / 2 - 5
+
+        #Contadores de configuración
         self.counters = [
-            Counter(50, self.control_panel_height/2, 85, 40, 2, 8, 1, "Cajeros", self.manager),
-            Counter(150, self.control_panel_height/2, 85, 40, 1, 20, 10, "# Productos", self.manager),
-            Counter(250, self.control_panel_height/2, 85, 40, 1, 10, 5, "Frecuencia", self.manager),
-            Counter(350, self.control_panel_height/2, 85, 40, 1, 5, 2, "Tiempo/prod", self.manager)
+            Counter(x_inicio + i * espacio_horizontal, y_control, 85, 40, min_val, max_val, valor_inicial, label, self.manager)
+            for i, (min_val, max_val, valor_inicial, label) in enumerate([
+                (1, 8, 1, "Cajeros"),
+                (1, 20, 10, "# Productos"),
+                (1, 10, 5, "Frecuencia"),
+                (1, 5, 2, "Tiempo/prod")
+            ])
         ]
-        
+
+        # Input dinámico para tiempo máximo de espera
+        x_input = x_inicio + len(self.counters) * espacio_horizontal
+        self.max_wait_input = InputNumber(
+            x_input, y_control, 85, 40,
+            "T/Max. de espera", "Segundos",
+            10, 1, 60, self.manager
+        )
+
         # Botones de control
         button_width = 60
         button_height = 60
         button_spacing = 20
-        total_width = 3 * button_width + 2 * button_spacing
-        start_x = (WINDOW_WIDTH - total_width) // 2
+        start_x = x_input + 150  # dejar espacio visual después del input
         y_position = 85
 
         self.control_buttons = [
@@ -145,18 +161,13 @@ class Simulation:
                     self.state = "simulation"
                     self.setup_simulation()
             else:
-                # Manejar eventos de los botones de velocidad
-                for i, button in enumerate(self.speed_buttons):
-                    if button.handle_event(event):
-                        if i == 0:  # Botón "x0.5"
-                            self.speed_multiplier = 0.5
-                            print("Velocidad ajustada a x0.5")
-                        elif i == 1:  # Botón "x1"
-                            self.speed_multiplier = 1
-                            print("Velocidad ajustada a x1")
-                        elif i == 2:  # Botón "x2"
-                            self.speed_multiplier = 2
-                            print("Velocidad ajustada a x2")
+                # Manejar eventos de los contadores
+                for counter in self.counters:
+                    counter.handle_event(event)
+
+                # Manejar evento de edición del input
+                self.max_wait_input.handle_event(event)
+                    
                 # Manejar eventos de los botones de control
                 for i, button in enumerate(self.control_buttons):
                     if button.handle_event(event):
@@ -167,6 +178,8 @@ class Simulation:
                             self.control_buttons[1].set_active(False)
                             # Deshabilitar el contador de cajeros
                             self.counters[0].set_enabled(False)
+                            self.max_wait_input.editable = False
+                            self.max_wait_input.set_enabled(False)
                         elif i == 1:  # Botón "Pausar"
                             self.is_running = False
                             self.is_paused = True
@@ -174,6 +187,9 @@ class Simulation:
                             self.control_buttons[1].set_active(True)
                             # Mantener el contador de cajeros deshabilitado
                             self.counters[0].set_enabled(False)
+                            self.max_wait_input.editable = True
+                            self.max_wait_input.set_enabled(True)
+
                         elif i == 2:  # Botón "Reset"
                             # Restablecer valores de los contadores
                             self.counters[0].set_value(1)  # Cajeros
@@ -190,10 +206,9 @@ class Simulation:
                             self.control_buttons[1].set_active(False)
                             # Habilitar el contador de cajeros
                             self.counters[0].set_enabled(True)
+                            self.max_wait_input.editable = True
+                            self.max_wait_input.set_enabled(True)
 
-                 # Manejar eventos de los contadores
-                for counter in self.counters:
-                    counter.handle_event(event)
                             
                 # Manejar eventos del radio button de distribución
                 self.distribution_radio.handle_event(event)
@@ -306,12 +321,8 @@ class Simulation:
         self.screen.fill(WHITE)
         self.draw_control_panel()
         self.draw_simulation()
-
-        # Mostrar velocidad actual
-        font = pygame.font.SysFont(None, 24)
-        speed_text = font.render(f"Velocidad: x{self.speed_multiplier}", True, (0, 0, 0))
-        self.screen.blit(speed_text, (10, self.control_panel_height + 10))
-        
+        self.max_wait_input.draw(self.screen)
+                
     def update_simulation(self, dt):
         if not self.is_running or self.is_paused:
             return
@@ -339,6 +350,8 @@ class Simulation:
         self.max_products = int(self.counters[1].get_value())
         self.arrival_frequency = int(self.counters[2].get_value())
         self.time_per_product = self.counters[3].get_value()
+        self.max_wait_time = self.max_wait_input.get_value()
+
         
         # Generate new customers
         self.time_since_last_customer += dt
@@ -371,6 +384,12 @@ class Simulation:
         # Actualizar clientes en las colas
         for i, queue in enumerate(self.queues):
             cashier = self.cashiers[i]
+                # Verificar si algún cliente excede el tiempo de espera
+            for customer in list(queue):  # se hace copia para evitar errores al eliminar
+                if not customer.is_being_served and customer.waiting_time >= self.max_wait_time:
+                    print(f"[ABANDONO] Cliente {customer.name} abandonó la cola {i+1} tras {customer.waiting_time:.1f}s")
+                    queue.remove(customer)
+
             if cashier.is_available and queue:  # Si el cajero está disponible y hay clientes en la cola
                 customer = queue[0]
                 customer.is_being_served = True

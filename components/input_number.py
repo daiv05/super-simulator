@@ -22,48 +22,59 @@ class InputNumber:
         
         # Crear el rectángulo de entrada
         self.input_rect = pygame.Rect(
-            x + (width - 80) // 2,  # Centrar el rectángulo
-            y + 20,  # Espacio para el título
-            80,  # Ancho fijo del rectángulo
-            35   # Alto fijo del rectángulo
+            x,
+            y + 25,
+            width,
+            40
         )
-        
+
+        self.editable = True
+        self.enabled = True
+
         # Variable para controlar si el input está activo
         self.active = False
         self.text_input = str(initial_value)
         
     def draw(self, surface):
+        self.input_rect.topleft = (self.x, self.y + 25)
+       
         # Dibujar título
         title_surface = self.title_font.render(self.title, True, (0, 0, 0))
-        title_rect = title_surface.get_rect(centerx=self.x + self.width//2, y=self.y)
+        title_rect = title_surface.get_rect(center=(self.x + self.width // 2, self.y))
         surface.blit(title_surface, title_rect)
         
         # Dibujar rectángulo blanco para el valor
         pygame.draw.rect(surface, (255, 255, 255), self.input_rect)
         
-        # Cambiar color del borde si está activo
-        border_color = (0, 150, 255) if self.active else (0, 0, 0) # Azul claro si activo, negro si no
-        pygame.draw.rect(surface, border_color, self.input_rect, 2)  # Borde con grosor 2
-        
-        # Dibujar valor o texto de entrada
-        text_to_render = self.text_input if self.active else str(self.value)
-        value_surface = self.value_font.render(text_to_render, True, (0, 0, 0))
+        # Dibujar texto del input si está activo, de lo contrario dibujar valor actual
+        if self.active:
+            value_surface = self.value_font.render(self.text_input, True, (0, 0, 0))
+        else:
+            value_surface = self.value_font.render(str(self.value), True, (0, 0, 0))
+
         value_rect = value_surface.get_rect(center=self.input_rect.center)
         surface.blit(value_surface, value_rect)
+
         
         # Dibujar subtítulo
         subtitle_surface = self.subtitle_font.render(self.subtitle, True, (0, 0, 0))
         subtitle_rect = subtitle_surface.get_rect(
-            centerx=self.x + self.width//2,
-            top=self.input_rect.bottom + 5
-        )
+            center=(self.x + self.width // 2, 
+                    self.input_rect.bottom + 5))
+
         surface.blit(subtitle_surface, subtitle_rect)
         
     def handle_event(self, event):
+        if not self.editable:
+            return False
+
         if not self.enabled:
             return False
             
         if event.type == pygame.MOUSEBUTTONDOWN:
+            #Temporal
+            print("Input activado por clic")
+
             if self.input_rect.collidepoint(event.pos):
                 self.active = True
                 return True
@@ -71,6 +82,8 @@ class InputNumber:
                 self.active = False
                 
         if event.type == pygame.KEYDOWN and self.active:
+            #Temporal
+            print("Tecla presionada:", event.unicode)
             if event.key == pygame.K_RETURN:
                 self.active = False
                 # Validar y actualizar el valor
