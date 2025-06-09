@@ -88,9 +88,7 @@ class InputNumber:
                 # Validar longitud máxima
                 if len(self.text_input) > 3:  # Limitar a 3 dígitos
                     self.text_input = self.text_input[:3]
-            print(f'InputNumber: Text input updated to {self.text_input}')
             return True
-        print('InputNumber: No event handled')
         return False
         
     def get_value(self):

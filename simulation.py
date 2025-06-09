@@ -134,7 +134,7 @@ class Simulation:
 
         # Pago con tarjeta (usando Select)
         self.payment_select = Select(
-            1130, 
+            1110, 
             self.control_panel_height/2,  # Ajustar Y para alinear con otros controles
             200, 
             100, 
@@ -145,7 +145,7 @@ class Simulation:
 
         # Capacidad máxima de la cola
         self.maximum_queue_capacity_input = InputNumber(
-            1250, 
+            1330, 
             self.control_panel_height/2,
             100, 
             40, 
