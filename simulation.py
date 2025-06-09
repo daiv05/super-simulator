@@ -1,21 +1,22 @@
 import pygame
 import pygame_gui
 import sys
+import random
 from pygame.locals import *
 from components.counter import Counter
 from components.radio_button import RadioButton
 from customer import Customer
 from cashier import Cashier
 from components.button import Button
+
 from components.input_number import InputNumber
 from components.select import Select
-import random
 
 # Inicializar pygame
 pygame.init()
 
 # Constantes
-WINDOW_WIDTH = 1400
+WINDOW_WIDTH = 1500
 WINDOW_HEIGHT = 700
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -48,20 +49,35 @@ class Simulation:
         # Altura del panel de control
         self.control_panel_height = 150
 
-        # Panel de control
+        # Layout dinámico horizontal para controles
+        x_inicio = 50
+        espacio_horizontal = 100
+        y_control = self.control_panel_height / 2 - 5
+
+        #Contadores de configuración
         self.counters = [
-            Counter(50, self.control_panel_height/2, 85, 40, 2, 8, 1, "Cajeros", self.manager),
-            Counter(150, self.control_panel_height/2, 85, 40, 1, 20, 10, "# Productos", self.manager),
-            Counter(250, self.control_panel_height/2, 85, 40, 1, 10, 5, "Frecuencia", self.manager),
-            Counter(350, self.control_panel_height/2, 85, 40, 1, 5, 2, "Tiempo/prod", self.manager)
+            Counter(x_inicio + i * espacio_horizontal, y_control, 85, 40, min_val, max_val, valor_inicial, label, self.manager)
+            for i, (min_val, max_val, valor_inicial, label) in enumerate([
+                (1, 8, 1, "Cajeros"),
+                (1, 20, 10, "# Productos"),
+                (1, 10, 5, "Frecuencia"),
+                (1, 5, 2, "Tiempo/prod")
+            ])
         ]
-        
+
+        # Input dinámico para tiempo máximo de espera
+        x_input = x_inicio + len(self.counters) * espacio_horizontal
+        self.max_wait_input = InputNumber(
+            480, 40, 85, 40,
+            "T/Max. de espera", "Segundos",
+            10, 1, 60, self.manager
+        )
+
         # Botones de control
         button_width = 60
         button_height = 60
         button_spacing = 20
-        total_width = 3 * button_width + 2 * button_spacing
-        start_x = (WINDOW_WIDTH - total_width) // 2
+        start_x = x_input + 150  # dejar espacio visual después del input
         y_position = 85
 
         self.control_buttons = [
@@ -173,6 +189,14 @@ class Simulation:
                         elif i == 2:  # Botón "x2"
                             self.speed_multiplier = 2
                             print("Velocidad ajustada a x2")
+                
+                # Manejar eventos de los contadores
+                # for counter in self.counters:
+                #     counter.handle_event(event)
+
+                # Manejar evento de edición del input
+                self.max_wait_input.handle_event(event)
+                    
                 # Manejar eventos de los botones de control
                 for i, button in enumerate(self.control_buttons):
                     if button.handle_event(event):
@@ -194,6 +218,7 @@ class Simulation:
                             self.control_buttons[1].set_enabled(False)
                             # Desactivar counter de cajeros
                             self.counters[0].set_enabled(False)
+
                         elif i == 2:  # Botón "Reset"
                             # Restablecer valores de los contadores
                             self.counters[0].set_value(1)  # Cajeros
@@ -213,7 +238,6 @@ class Simulation:
                             self.control_buttons[1].set_enabled(False)
                             # Activar counter de cajeros
                             self.counters[0].set_enabled(True)
-                # Manejar eventos de los contadores
                 for i, counter in enumerate(self.counters):
                     if counter.handle_event(event):
                         # Si es el contador de cajeros (índice 0)
@@ -226,7 +250,7 @@ class Simulation:
                                 self.payment_select.options = [f"CAJA {i + 1}" for i in range(self.num_cashiers)]
                                 if not self.is_running:
                                     self.setup_simulation()
-                            
+
                 # Manejar eventos del radio button de distribución
                 self.distribution_radio.handle_event(event)
 
@@ -310,8 +334,8 @@ class Simulation:
         total_seconds = self.total_simulation_time
         minutes = int(total_seconds // 60)
         seconds = int(total_seconds % 60)
-        milliseconds = int((total_seconds - int(total_seconds)) * 1000)  # Parte decimal a milisegundos
-        time_str = f"{str(minutes).zfill(2)}:{str(seconds).zfill(2)}:{milliseconds}"
+        milliseconds = int((total_seconds - int(total_seconds)) * 100)  
+        time_str = f"{str(minutes).zfill(2)}:{str(seconds).zfill(2)}:{str(milliseconds).zfill(2)}"
         
         # Actualizar el texto del UILabel
         self.time_label.set_text(time_str)
@@ -333,6 +357,10 @@ class Simulation:
 
         # Draw payment select dropdown
         self.payment_select.draw(self.screen)
+
+        # Dibujar input de tiempo máximo de espera
+        self.max_wait_input.draw(self.screen)
+
             
     def draw_simulation(self):
         # Dibujar cajeros
@@ -357,12 +385,11 @@ class Simulation:
         self.screen.fill(WHITE)
         self.draw_control_panel()
         self.draw_simulation()
-
         # Mostrar velocidad actual
         font = pygame.font.SysFont(None, 24)
         speed_text = font.render(f"Velocidad: x{self.speed_multiplier}", True, (0, 0, 0))
         self.screen.blit(speed_text, (10, self.control_panel_height + 10))
-        
+                        
     def update_simulation(self, dt):
         if not self.is_running or self.is_paused:
             return
@@ -387,9 +414,21 @@ class Simulation:
         total_seconds = self.total_simulation_time
         minutes = int(total_seconds // 60)
         seconds = int(total_seconds % 60)
-        milliseconds = int((total_seconds - int(total_seconds)) * 10)  # Parte decimal a milisegundos
-        time_str = f"{str(minutes).zfill(2)}:{str(seconds).zfill(2)}:{milliseconds}"
+        milliseconds = int((total_seconds - int(total_seconds)) * 100)
+        time_str = f"{str(minutes).zfill(2)}:{str(seconds).zfill(2)}:{str(milliseconds).zfill(2)}"
         
+        ## TEST
+        # Actualizar variables de simulación desde los contadores
+        # new_num_cashiers = int(self.counters[0].get_value())
+        # if new_num_cashiers != self.num_cashiers:
+        #     self.num_cashiers = new_num_cashiers
+        #     print(f"Número de cajeros cambiado a: {self.num_cashiers}")
+        #     self.setup_simulation()
+            
+        # self.max_products = int(self.counters[1].get_value())
+        # self.arrival_frequency = int(self.counters[2].get_value())
+        # self.time_per_product = self.counters[3].get_value()
+        ## TEST
         # Actualizar el texto del UILabel
         self.time_label.set_text(time_str)
             
@@ -419,7 +458,7 @@ class Simulation:
 
             new_customer = Customer(new_x, new_y, self.max_products, self.time_per_product)
 
-            if(new_customer.uses_card_payment and self.card_payment_cashier):
+            if (new_customer.uses_card_payment and self.card_payment_cashier):
                 # Buscar el índice del cajero que acepta pago con tarjeta
                 for idx, cashier in enumerate(self.cashiers):
                     if cashier.accepts_card_payment == self.card_payment_cashier.accepts_card_payment:
@@ -434,6 +473,12 @@ class Simulation:
         # Actualizar clientes en las colas
         for i, queue in enumerate(self.queues):
             cashier = self.cashiers[i]
+            # Verificar si algún cliente excede el tiempo de espera
+            for customer in list(queue):  # se hace copia para evitar errores al eliminar
+                if not customer.is_being_served and customer.waiting_time >= self.max_wait_input.get_value():
+                    print(f"[ABANDONO] Cliente {customer.name} abandonó la cola {i+1} tras {customer.waiting_time:.1f}s")
+                    queue.remove(customer)
+
             if cashier.is_available and queue:  # Si el cajero está disponible y hay clientes en la cola
                 customer = queue[0]
                 customer.is_being_served = True

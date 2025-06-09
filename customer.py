@@ -4,6 +4,7 @@ import os
 from components.tooltip import Tooltip
 from utils.name_generator import generar_nombre
 class Customer:
+    
     def __init__(self, x, y, max_products, time_per_product):
         self.x = x
         self.y = y
