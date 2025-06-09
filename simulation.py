@@ -77,7 +77,8 @@ class Simulation:
         button_width = 60
         button_height = 60
         button_spacing = 20
-        start_x = x_input + 150  # dejar espacio visual después del input
+        total_width = 3 * button_width + 2 * button_spacing
+        start_x = (WINDOW_WIDTH - total_width) // 2
         y_position = 85
 
         self.control_buttons = [
@@ -86,7 +87,7 @@ class Simulation:
             Button(start_x + 2 * (button_width + button_spacing), y_position, button_width, button_height, "", color=(150, 0, 0), hover_color=(200, 0, 0), active_color=(100, 0, 0), manager=self.manager, btn_type="#btn-reset", enabled=True)
         ]
         
-        #botones de velocida4
+        # Botones de velocidad
         self.speed_buttons = [
             Button(WINDOW_WIDTH - 220, 20, 40, 40, "x0.5", color=(157, 191, 255), hover_color=(0, 200, 0), active_color=(0, 100, 0), btn_type="#btn-x0.5"),
             Button(WINDOW_WIDTH - 150, 20, 40, 40, "x1", color=(150, 150, 0), hover_color=(200, 200, 0), active_color=(100, 100, 0), btn_type="#btn-x1"),
@@ -95,7 +96,7 @@ class Simulation:
 
         # Distribución de clientes (usando RadioButton)
         self.distribution_radio = RadioButton(
-            850, 
+            920, 
             self.control_panel_height/2 - 40,  # Ajustar Y para alinear con otros controles
             200, 
             100, 
@@ -132,7 +133,7 @@ class Simulation:
 
         # Pago con tarjeta (usando Select)
         self.payment_select = Select(
-            1030, 
+            1130, 
             self.control_panel_height/2,  # Ajustar Y para alinear con otros controles
             200, 
             100, 
