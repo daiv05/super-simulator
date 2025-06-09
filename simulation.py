@@ -229,6 +229,10 @@ class Simulation:
         self.queues = []
         self.time_since_last_customer = 0
         
+        self.max_wait_input.update_value_from_text()
+        self.max_wait_time = self.max_wait_input.get_value()
+
+        
         # Crear cajeros en la parte superior con el espaciado adecuado para las imágenes
         cashier_spacing = (WINDOW_WIDTH - 200) // self.num_cashiers  # Aumentamos el espaciado para las imágenes
         for i in range(self.num_cashiers):
@@ -277,8 +281,8 @@ class Simulation:
         total_seconds = self.total_simulation_time
         minutes = int(total_seconds // 60)
         seconds = int(total_seconds % 60)
-        milliseconds = int((total_seconds - int(total_seconds)) * 1000)  # Parte decimal a milisegundos
-        time_str = f"{str(minutes).zfill(2)}:{str(seconds).zfill(2)}:{milliseconds}"
+        milliseconds = int((total_seconds - int(total_seconds)) * 100)  
+        time_str = f"{str(minutes).zfill(2)}:{str(seconds).zfill(2)}:{str(milliseconds).zfill(2)}"
         
         # Actualizar el texto del UILabel
         self.time_label.set_text(time_str)
@@ -334,8 +338,8 @@ class Simulation:
         total_seconds = self.total_simulation_time
         minutes = int(total_seconds // 60)
         seconds = int(total_seconds % 60)
-        milliseconds = int((total_seconds - int(total_seconds)) * 10)  # Parte decimal a milisegundos
-        time_str = f"{str(minutes).zfill(2)}:{str(seconds).zfill(2)}:{milliseconds}"
+        milliseconds = int((total_seconds - int(total_seconds)) * 100)
+        time_str = f"{str(minutes).zfill(2)}:{str(seconds).zfill(2)}:{str(milliseconds).zfill(2)}"
         
         # Actualizar el texto del UILabel
         self.time_label.set_text(time_str)

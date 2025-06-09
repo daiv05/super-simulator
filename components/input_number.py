@@ -72,18 +72,13 @@ class InputNumber:
             return False
             
         if event.type == pygame.MOUSEBUTTONDOWN:
-            #Temporal
-            print("Input activado por clic")
-
             if self.input_rect.collidepoint(event.pos):
                 self.active = True
                 return True
             else:
                 self.active = False
                 
-        if event.type == pygame.KEYDOWN and self.active:
-            #Temporal
-            print("Tecla presionada:", event.unicode)
+        if event.type == pygame.KEYDOWN and self.active:            
             if event.key == pygame.K_RETURN:
                 self.active = False
                 # Validar y actualizar el valor
@@ -101,9 +96,7 @@ class InputNumber:
                 # Validar longitud máxima
                 if len(self.text_input) > 3:  # Limitar a 3 dígitos
                     self.text_input = self.text_input[:3]
-            print(f'InputNumber: Text input updated to {self.text_input}')
             return True
-        print('InputNumber: No event handled')
         return False
         
     def get_value(self):
@@ -116,3 +109,13 @@ class InputNumber:
             
     def set_enabled(self, enabled):
         self.enabled = enabled
+
+    def update_value_from_text(self):
+        #"""Actualiza self.value en base al contenido de self.text_input"""
+        try:
+            new_value = int(self.text_input)
+            if self.min_value <= new_value <= self.max_value:
+                self.value = new_value
+        except ValueError:
+            pass  # Si no es un número válido, no actualices nada
+
