@@ -29,6 +29,11 @@ class Simulation:
         pygame.display.set_caption("Simulación de Supermercado")
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 
+        # Cargar icono
+        icon = pygame.image.load("assets/favicon.png")
+        icon = pygame.transform.scale(icon, (32, 32))  # Redimensionar icono
+        pygame.display.set_icon(icon)
+
         self.background = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
         background_image = pygame.image.load("assets/fondo-supermercado.jpg")
         self.background = pygame.transform.scale(background_image, (WINDOW_WIDTH, WINDOW_HEIGHT))
