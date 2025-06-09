@@ -8,7 +8,7 @@ class Tooltip:
         self.font = pygame.font.Font(None, font_size)
         self.visible = False
         self.padding = 10
-        self.arrow_size = 15
+        self.arrow_size = 0
         self.background_color = (100, 100, 100)  # Gris oscuro
         self.text_color = (255, 255, 255)  # Texto blanco
         

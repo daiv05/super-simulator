@@ -19,12 +19,11 @@ class Select:
         self.option_font = pygame.font.Font(None, 24)
         
         # Crear el rectángulo principal
-        padding = 20
         self.select_rect = pygame.Rect(
-            x + (width - 200) // 2,  # Centrar el rectángulo
-            y + 40,  # Espacio para el título
-            200,  # Ancho fijo del rectángulo
-            40   # Alto fijo del rectángulo
+            x + (width - 150) // 2,  # Centrar el rectángulo
+            y + 20,  # Espacio para el título
+            150,  # Ancho fijo del rectángulo
+            36   # Alto fijo del rectángulo
         )
         
         # Crear el rectángulo para las opciones desplegables
@@ -32,14 +31,14 @@ class Select:
             self.select_rect.x,
             self.select_rect.bottom,
             self.select_rect.width,
-            len(options) * 40  # Alto basado en número de opciones
+            len(options) * 36  # Alto basado en número de opciones
         )
         
         # Crear el triángulo para la flecha
         self.arrow_points = [
-            (self.select_rect.right - 25, self.select_rect.centery - 5),
-            (self.select_rect.right - 15, self.select_rect.centery + 5),
-            (self.select_rect.right - 5, self.select_rect.centery - 5)
+            (self.select_rect.right - 30, self.select_rect.centery - 5),
+            (self.select_rect.right - 20, self.select_rect.centery + 5),
+            (self.select_rect.right - 10, self.select_rect.centery - 5)
         ]
         
     def draw(self, surface):

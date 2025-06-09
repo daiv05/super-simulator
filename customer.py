@@ -4,6 +4,7 @@ import os
 from components.tooltip import Tooltip
 from utils.name_generator import generar_nombre
 class Customer:
+    
     def __init__(self, x, y, max_products, time_per_product):
         self.x = x
         self.y = y
@@ -35,11 +36,20 @@ class Customer:
         # Crear fuente para los textos
         self.font = pygame.font.Font(None, 20)
         
+        # Determinar si el cliente paga con tarjeta (probabilidad del 30%)
+        self.uses_card_payment = random.random() < 0.3
+
+        # Cargar ícono de pago con tarjeta si es necesario
+        self.card_icon = None
+        if self.uses_card_payment:
+            self.card_icon = pygame.image.load("assets/atm-card.png")
+            self.card_icon = pygame.transform.scale(self.card_icon, (30, 30))
+        
         # Crear tooltip
         self.tooltip = Tooltip(0, 0, "")
         self.update_tooltip_text()
         
-        print(f"Nuevo cliente creado: {self.num_products} productos, tiempo por producto: {self.time_per_product}s, tiempo total estimado: {self.serving_time:.1f}s")
+        print(f"Nuevo cliente: {self.num_products} productos, tiempo por producto: {self.time_per_product}s, tiempo total estimado: {self.serving_time:.1f}s")
         
     def update_tooltip_text(self):
         """Actualiza el texto del tooltip con la información actual del cliente"""
@@ -56,12 +66,16 @@ class Customer:
         self.rect.x = x
         self.rect.y = y
         # Actualizar posición del tooltip (al lado derecho del cliente)
-        self.tooltip.update_position(self.rect.right + 10, self.rect.centery - 30)
+        self.tooltip.update_position(self.rect.right - 80, self.rect.top - 90)
         
     def draw(self, screen):
         # Dibujar la imagen del cliente
         screen.blit(self.image, self.rect)
-            
+        
+        # Dibujar ícono de pago con tarjeta si es necesario
+        if self.uses_card_payment and self.card_icon:
+            screen.blit(self.card_icon, (self.rect.right - 15, self.rect.top + 20))
+
         # Dibujar tooltip si está visible
         self.tooltip.draw(screen)
             
@@ -88,4 +102,4 @@ class Customer:
         if self.rect.collidepoint(mouse_pos):
             self.tooltip.show()
         else:
-            self.tooltip.hide() 
+            self.tooltip.hide()
