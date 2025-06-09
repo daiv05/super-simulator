@@ -13,12 +13,20 @@ Esta es una simulación de colas en un supermercado desarrollada con Pygame.
 - Control de variables de simulación:
   - Número de cajeros (1-8)
   - Número máximo de productos por cliente
-  - Frecuencia de llegada de clientes
+  - Frecuencia de llegada de clientes (segundos)
+  - Tiempo de atención por cada producto (segundos)
+  - Tiempo máximo de espera en cola del cliente (segundos)
+  - Tiempo total de la simulación (segundos)
+  - Distribución de llegada de clientes (aleatoria o fila más corta)
+  - Selección de cajero que acepta pago con tarjeta
+  - Capacidad máxima de la cola (número de clientes)
+  - Velocidad de la simulación (x0.5, x1, x2)
 - Botones de control:
   - Iniciar
   - Pausar
   - Reset
-- Visualización de la simulación en tiempo real 
+- Visualización de efectos de las variables de simulación en tiempo real
+- Actualización de variables de simulación en tiempo real (excpeto para el número de cajeros)
 
 ## Instalación
 
@@ -29,7 +37,6 @@ Esta es una simulación de colas en un supermercado desarrollada con Pygame.
 - [David Deras](https://github.com/daiv05)
 - [Elmer Molina](https://github.com/Edenilson-Molina)
 - [Susana Rivera](https://github.com/RiveraP11069)
-- [José Cruz](https://github.com/code17049)
 - [Luis Moran](https://github.com/Luis-M23)
 
 ## Licencia
