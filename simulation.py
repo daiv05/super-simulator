@@ -119,6 +119,7 @@ class Simulation:
         self.is_running = False
         self.is_paused = False
         self.total_simulation_time = 0.0  # Para el tiempo total
+        self.maximum_queue_capacity = 5  # Capacidad máxima de la cola
 
         # Crear UILabel para mostrar el tiempo total
         self.time_label = pygame_gui.elements.UILabel(
@@ -140,6 +141,20 @@ class Simulation:
             "Pago con tarjeta",
             [f"CAJA {i + 1}" for i in range(self.num_cashiers)],  # Generar opciones dinámicamente
             self.manager
+        )
+
+        # Capacidad máxima de la cola
+        self.maximum_queue_capacity_input = InputNumber(
+            1250, 
+            self.control_panel_height/2,
+            100, 
+            40, 
+            "Capacidad max. de cola", 
+            "Clientes", 
+            initial_value=5, 
+            min_value=1, 
+            max_value=10, 
+            manager=self.manager
         )
         
 
@@ -264,6 +279,11 @@ class Simulation:
                             self.card_payment_cashier = cashier
                             print(f"Cajero seleccionado para pago con tarjeta: {cashier.name}")
                             break
+                
+                # Manejar eventos del input de capacidad máxima de cola
+                if self.maximum_queue_capacity_input.handle_event(event):
+                    self.maximum_queue_capacity = self.maximum_queue_capacity_input.get_value()
+                    print(f"Capacidad máxima de cola actualizada a: {self.maximum_queue_capacity}")
             
             # Manejar hover del mouse
             if event.type == pygame.MOUSEMOTION:
@@ -359,6 +379,9 @@ class Simulation:
         # Draw payment select dropdown
         self.payment_select.draw(self.screen)
 
+        # Draw maximum queue capacity input
+        self.maximum_queue_capacity_input.draw(self.screen)
+
         # Dibujar input de tiempo máximo de espera
         self.max_wait_input.draw(self.screen)
 
@@ -438,26 +461,8 @@ class Simulation:
         if self.time_since_last_customer >= self.arrival_frequency:
             self.time_since_last_customer = 0
 
-            if self.distribution_radio.get_value() == 0:  # Distribución aleatoria
-                # Asignar a una cola aleatoria
-                queue_index = random.randint(0, len(self.queues) - 1)
-                selected_queue = self.queues[queue_index]
-            else:  # Distribución por cola más corta
-                # Asignar a la cola más corta
-                selected_queue = min(self.queues, key=len)
-                queue_index = self.queues.index(selected_queue)
-
-            # Create new customer at the end of the selected queue
-            if len(selected_queue) > 0:
-                last_customer = selected_queue[-1]
-                new_x = last_customer.x
-                new_y = last_customer.y + 60
-            else:
-                cashier = self.cashiers[queue_index]
-                new_x = cashier.rect.centerx - 25
-                new_y = cashier.rect.bottom + 20
-
-            new_customer = Customer(new_x, new_y, self.max_products, self.time_per_product)
+            selected_queue = None
+            new_customer = Customer(0, 0, self.max_products, self.time_per_product)
 
             if (new_customer.uses_card_payment and self.card_payment_cashier):
                 # Buscar el índice del cajero que acepta pago con tarjeta
@@ -467,10 +472,30 @@ class Simulation:
                         print(f"Cliente asignado a la caja {idx +1 } (pago con tarjeta)")
                         break
                 selected_queue = self.queues[queue_index]
+            else:
+                if self.distribution_radio.get_value() == 0:  # Distribución aleatoria
+                    # Asignar a una cola aleatoria
+                    queue_index = random.randint(0, len(self.queues) - 1)
+                    selected_queue = self.queues[queue_index]
+                else:  # Distribución por cola más corta
+                    # Asignar a la cola más corta
+                    selected_queue = min(self.queues, key=len)
+                    queue_index = self.queues.index(selected_queue)
 
-            selected_queue.append(new_customer)
-            print(f"Nuevo cliente añadido a la cola {queue_index + 1} ({'aleatoria' if self.distribution_radio.get_value() == 0 else 'más corta'})")
-            
+            # Verificar si la cola seleccionada ha alcanzado su capacidad máxima
+            if len(selected_queue) >= self.maximum_queue_capacity:
+                print(f"Cola {queue_index + 1} ha alcanzado su capacidad máxima ({self.maximum_queue_capacity}). No se puede añadir un nuevo cliente.")
+            else:
+                # Añadir el nuevo cliente a la cola seleccionada
+                if len(selected_queue) > 0:
+                    last_customer = selected_queue[-1]
+                    new_customer.update_position(last_customer.x, last_customer.y + 60)  # Colocar debajo del último cliente
+                else:
+                    cashier = self.cashiers[queue_index]
+                    new_customer.update_position(cashier.rect.centerx - 25, cashier.rect.bottom + 20)  # Colocar debajo del cajero
+                selected_queue.append(new_customer)
+                print(f"Nuevo cliente añadido a la cola {queue_index + 1} ({'que acepta tarjeta' if new_customer.uses_card_payment else 'aleatoria' if self.distribution_radio.get_value() == 0 else 'cola más corta'})")
+                self.customers.append(new_customer)  # Añadir cliente a la lista de clientes
         # Actualizar clientes en las colas
         for i, queue in enumerate(self.queues):
             cashier = self.cashiers[i]
